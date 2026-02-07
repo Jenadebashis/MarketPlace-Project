@@ -37,13 +37,25 @@ const VendorDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {data.products.length > 0 ? (
           data.products.map(product => (
-            <div key={product._id} className="border p-4 rounded hover:shadow-md transition bg-gray-50">
-              <h4 className="font-medium text-lg text-gray-900">{product.name}</h4>
-              <p className="text-sm text-gray-500">Price: ₹{product.price}</p>
+            <div key={product._id} className="border p-4 rounded hover:shadow-md transition bg-gray-50 flex flex-col gap-3">
+              {/* Image Container */}
+              <div className="w-full h-48 overflow-hidden rounded bg-gray-200">
+                <img
+                  src={`http://localhost:3000/${product.image}`}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.src = 'http://localhost:3000/uploads\\1770086081517-476175908.png'; }} // Fallback if image fails
+                />
+              </div>
+
+              <div>
+                <h4 className="font-medium text-lg text-gray-900">{product.name}</h4>
+                <p className="text-sm text-gray-500">Price: ₹{product.price}</p>
+              </div>
             </div>
           ))
         ) : (
-          <p className="text-gray-500 italic">No products found for this vendor.</p>
+          <p>No products found.</p>
         )}
       </div>
     </div>
