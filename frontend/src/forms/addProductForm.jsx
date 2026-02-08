@@ -32,6 +32,7 @@ const AddProductForm = () => {
       formData.append('category', data.category);
 
       // 2. Append the Image (assuming your input name is 'image')
+      console.log('the data coming here is: ', data);
       if (data.image && data.image[0]) {
         formData.append('image', data.image[0]);
       }
