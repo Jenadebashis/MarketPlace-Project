@@ -28,7 +28,8 @@ if (!fs.existsSync(uploadDir)) {
 const app = express();
 app.use(express.json());
 app.use(cors({
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: 'https://marketplace-project-xi5v.onrender.com/'
 }));
 
 const __filename = fileURLToPath(import.meta.url);
