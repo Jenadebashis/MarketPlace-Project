@@ -27,10 +27,28 @@ if (!fs.existsSync(uploadDir)) {
 
 const app = express();
 app.use(express.json());
+const allowedOrigins = [
+  'http://localhost:5173',                      // Your local React app
+  'https://marketplace-project-xi5v.onrender.com' // Your deployed app (no trailing slash)
+];
+
 app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   allowedHeaders: ['Content-Type', 'Authorization'],
-  origin: 'https://marketplace-project-xi5v.onrender.com/'
+  credentials: true // Important if you are using cookies/sessions later
 }));
+
+// Express v5 compliant preflight handler
+app.options('/*splat', cors());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
