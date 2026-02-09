@@ -41,7 +41,7 @@ const VendorDashboard = () => {
               {/* Image Container */}
               <div className="w-full h-48 overflow-hidden rounded bg-gray-200">
                 <img
-                  src={`http://localhost:3000/${product.image}`}
+                  src={`https://marketplace-project-xi5v.onrender.com/${product.image}`}
                   alt={product.name}
                   className="w-full h-full object-cover"
                   onError={(e) => { e.target.src = 'http://localhost:3000/uploads\\1770086081517-476175908.png'; }} // Fallback if image fails
