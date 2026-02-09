@@ -1,6 +1,7 @@
 import AppError from "../utils/AppError.js";
 
 export const globalErrorHandler = (err, req, res, next) => {
+  console.error("ERROR 💥:", err); // ADD THIS: This will show up in Onrender Logs
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
