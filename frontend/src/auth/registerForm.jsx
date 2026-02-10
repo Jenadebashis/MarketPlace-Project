@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { registrationSchema } from '../../../backend/utils/validation';
+import { registrationSchema } from '../utils/validation';
 import { apiCall } from '../api';
 
 const RegisterForm = () => {
