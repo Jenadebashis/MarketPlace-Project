@@ -28,6 +28,7 @@ if (!fs.existsSync(uploadDir)) {
 const app = express();
 app.use(express.json());
 const allowedOrigins = [
+  'https://marketplacedj.netlify.app',
   'http://localhost:5173',                      // Your local React app
   'https://marketplace-project-xi5v.onrender.com' // Your deployed app (no trailing slash)
 ];
