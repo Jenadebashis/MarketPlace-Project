@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import LoginForm from './auth/loginForm';
 import RegisterForm from './auth/registerForm';
 import AddProductForm from './forms/addProductForm';
 import ProtectedRoute from './components/protectedRoute';
 import VendorDashboard from './components/vendorDashboard';
+import Home from './pages/homePage';
+import ProductPage from './pages/productPage';
 
 // --- STYLISH NAVBAR COMPONENT ---
 const Navbar = () => {
@@ -59,38 +61,17 @@ const Navbar = () => {
   );
 };
 
-// --- STYLISH HOME SECTION ---
-const Home = () => (
-  <div className="relative overflow-hidden">
-    <div className="max-w-7xl mx-auto px-6 py-20 md:py-32 grid md:grid-cols-2 gap-12 items-center">
-      <div>
-        <span className="text-emerald-600 font-bold tracking-widest uppercase text-xs">Premium Nature Marketplace</span>
-        <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mt-4 leading-tight">
-          Explore the <br /><span className="text-emerald-600">Great Outdoors.</span>
-        </h1>
-        <p className="mt-6 text-lg text-gray-600 leading-relaxed">
-          Buy gear, book nature experiences, and connect with explorers.
-          The marketplace designed for those who don't want to waste a second inside.
-        </p>
-        <div className="mt-10 flex gap-4">
-          <Link to="/register" className="bg-gray-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-gray-800 transition">
-            Start Exploring
-          </Link>
-        </div>
-      </div>
-      <div className="bg-emerald-100 rounded-3xl aspect-square relative">
-        {/* You can place a high-quality nature image here */}
-        <div className="absolute inset-0 flex items-center justify-center text-emerald-300 opacity-50">
-          <svg className="w-40 h-40" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 2a1 1 0 011 1v1.323l3.945 2.154a1 1 0 01.505.87v4.306a1 1 0 01-.505.87L11 14.677V16a1 1 0 11-2 0v-1.323l-3.945-2.154a1 1 0 01-.505-.87V7.347a1 1 0 01.505-.87L9 4.323V3a1 1 0 011-1z" />
-          </svg>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if a user token exists in local storage
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
   return (
     <Router>
       <div className="min-h-screen w-full bg-slate-50 font-sans text-gray-900">
@@ -98,13 +79,14 @@ function App() {
 
         <main className="container mx-auto">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
             <Route path="/login" element={<div className="flex justify-center mt-20"><LoginForm /></div>} />
             <Route path="/register" element={<div className="flex justify-center mt-20"><RegisterForm /></div>} />
 
             <Route element={<ProtectedRoute />}>
               <Route path="/add-product" element={<div className="flex justify-center mt-20"><AddProductForm /></div>} />
               <Route path='/dashboard' element={<div className="flex justify-center mt-20"><VendorDashboard /></div>} />
+              <Route path="/products" element={<ProductPage />} />
             </Route>
 
             <Route path="*" element={

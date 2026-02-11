@@ -56,7 +56,28 @@ router.get('/', async (req, res) => {
     if (minPrice) query.price = { $gte: Number(minPrice) };
 
     const products = await Product.find(query);
-    res.json(products);
+    const vendorIds = [...new Set(products.map(p => Number(p.vendorId)))];
+
+    const sellers = await User.findAll({
+      attributes: ['id', 'name'],
+      where: {
+        id: {
+          [Op.in]: vendorIds
+        }
+      },
+      raw: true
+    });
+
+
+    const enrichedProducts = products.map(product => {
+      const seller = sellers.find(s => s.id === Number(product.vendorId));
+      return {
+        ...product._doc,
+        sellerName: seller ? seller.name : 'Unknown Seller'
+      };
+    });
+
+    res.json(enrichedProducts);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
