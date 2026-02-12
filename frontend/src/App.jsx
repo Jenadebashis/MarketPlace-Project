@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import LoginForm from './auth/loginForm';
 import RegisterForm from './auth/registerForm';
@@ -7,6 +7,7 @@ import ProtectedRoute from './components/protectedRoute';
 import VendorDashboard from './components/vendorDashboard';
 import Home from './pages/homePage';
 import ProductPage from './pages/productPage';
+import UserDetails from './pages/UserDetails';
 
 // --- STYLISH NAVBAR COMPONENT ---
 const Navbar = () => {
@@ -87,6 +88,7 @@ function App() {
               <Route path="/add-product" element={<div className="flex justify-center mt-20"><AddProductForm /></div>} />
               <Route path='/dashboard' element={<div className="flex justify-center mt-20"><VendorDashboard /></div>} />
               <Route path="/products" element={<ProductPage />} />
+              <Route path="/seller-profile/:id" element={<UserDetails />} />
             </Route>
 
             <Route path="*" element={

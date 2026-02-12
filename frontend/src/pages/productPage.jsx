@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { apiCall } from '../api';
 
 const ProductPage = () => {
@@ -61,7 +62,13 @@ const ProductPage = () => {
 
                   {/* Seller Name from your enriched backend data */}
                   <p className="text-sm text-gray-400 mt-1">
-                    Selling by <span className="text-gray-600 font-medium">{product.sellerName}</span>
+                    Selling by{' '}
+                    <Link
+                      to={`/seller-profile/${product.vendorId}`}
+                      className="text-blue-500 hover:text-blue-700 font-medium transition-colors"
+                    >
+                      {product.sellerName}
+                    </Link>
                   </p>
 
                   <div className="mt-6 flex justify-between items-end">
