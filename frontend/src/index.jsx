@@ -1,4 +1,4 @@
-import configureStore from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 import demoReducer from './reducers/demoReducer';
 import appMiddleware from './appMiddleware';
 
