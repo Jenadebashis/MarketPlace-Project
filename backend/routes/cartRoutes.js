@@ -15,7 +15,7 @@ router.get('/', protect, async (req, res) => {
 });
 
 // POST /api/cart/sync - Save Redux cart to Database
-router.post('/sync', auth, async (req, res) => {
+router.post('/sync', protect, async (req, res) => {
   try {
     const { items } = req.body;
     console.log("User ID from token:", req.user.id);
