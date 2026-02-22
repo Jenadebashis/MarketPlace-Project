@@ -8,6 +8,7 @@ import User from './config/User.js';
 import jwt from 'jsonwebtoken';
 import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -61,6 +62,7 @@ mongoose.connect(process.env.MONGODB_CONNECTION)
 
 app.use('/api/product', productRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/cart', cartRoutes);
 
 // --- UPDATED ROUTES USING catchAsync ---
 
