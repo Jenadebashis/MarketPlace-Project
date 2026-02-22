@@ -1,8 +1,8 @@
 // routes/cart.js
 import express from "express";
 const router = express.Router();
-import Cart from "../models/Cart";
-import { protect } from "../middleware/auth";
+import Cart from "../models/Cart.js";
+import { protect } from "../middleware/auth.js";
 
 // GET /api/cart - Fetch user's cart on login
 router.get('/', protect, async (req, res) => {
