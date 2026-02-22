@@ -15,18 +15,20 @@ router.get('/', protect, async (req, res) => {
 });
 
 // POST /api/cart/sync - Save Redux cart to Database
-router.post('/sync', protect, async (req, res) => {
-  const { items } = req.body;
+router.post('/sync', auth, async (req, res) => {
   try {
-    // Upsert: Find by userId, update items, create if not found
+    const { items } = req.body;
+    console.log("User ID from token:", req.user.id);
+    
     let cart = await Cart.findOneAndUpdate(
       { userId: req.user.id },
       { $set: { items: items } },
-      { new: true, upsert: true }
+      { new: true, upsert: true, runValidators: true }
     );
     res.json(cart.items);
   } catch (err) {
-    res.status(500).send('Error syncing cart');
+    console.error("Mongoose Error:", err.message);
+    res.status(500).send(err.message);
   }
 });
 
