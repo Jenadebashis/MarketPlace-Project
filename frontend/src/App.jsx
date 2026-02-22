@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import LoginForm from './auth/loginForm';
 import RegisterForm from './auth/registerForm';
 import AddProductForm from './forms/addProductForm';
@@ -8,9 +9,14 @@ import VendorDashboard from './components/vendorDashboard';
 import Home from './pages/homePage';
 import ProductPage from './pages/productPage';
 import UserDetails from './pages/UserDetails';
+import Checkout from './pages/CheckoutPage';
 
 // --- STYLISH NAVBAR COMPONENT ---
 const Navbar = () => {
+
+  const cart = useSelector((state) => state.demo.cart);
+  const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
@@ -30,6 +36,16 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-6 ml-2.5">
+        <Link to="/checkout" className="relative p-2 text-gray-600 hover:text-emerald-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          {totalItems > 0 && (
+            <span className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white">
+              {totalItems}
+            </span>
+          )}
+        </Link>
         <Link to="/login" className="text-sm font-semibold text-gray-700 hover:text-emerald-600">Log in</Link>
         <Link
           to="/register"
@@ -89,6 +105,7 @@ function App() {
               <Route path='/dashboard' element={<div className="flex justify-center mt-20"><VendorDashboard /></div>} />
               <Route path="/products" element={<ProductPage />} />
               <Route path="/seller-profile/:id" element={<UserDetails />} />
+              <Route path="/checkout" element={<Checkout />} />
             </Route>
 
             <Route path="*" element={
