@@ -3,19 +3,36 @@ import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { apiCall } from '../api';
 
+export const useCartSync = (isAuthenticated) => {
+  const cart = useSelector((state) => state.demo.cart);
+
+  useEffect(() => {
+    if (!isAuthenticated || cart.length === 0) return;
+
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        await apiCall('/api/cart/sync', 'POST', { items: cart });
+        console.log("🛒 Database synced successfully");
+      } catch (err) {
+        console.error("❌ Cart sync failed:", err);
+      }
+    }, 1500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [cart, isAuthenticated]);
+};
+
 const ProductPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const dispatch = useDispatch();
-  // Accessing the cart from your demoReducer state
   const cart = useSelector((state) => state.demo.cart);
 
   useEffect(() => {
-    // Replace with your actual API endpoint URL
     const fetchProducts = async () => {
       try {
-        const response = await apiCall('/api/product', 'GET'); // Adjust path as needed
+        const response = await apiCall('/api/product', 'GET');
         console.log("Full Response:", response);
         setProducts(response);
         setLoading(false);
@@ -48,7 +65,6 @@ const ProductPage = () => {
       <main className="max-w-7xl mx-auto px-6 mt-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((product) => {
-            // Check if this product is already in the cart to show qty or Add button
             const cartItem = cart.find((item) => item._id === product._id);
             const quantity = cartItem ? cartItem.qty : 0;
 

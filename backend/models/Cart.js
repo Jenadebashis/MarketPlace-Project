@@ -2,7 +2,7 @@
 import mongoose from "mongoose";
 
 const cartSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  userId: { type: String, required: true },
   items: [
     {
       _id: { type: String, required: true }, // Changed to match your JSON key

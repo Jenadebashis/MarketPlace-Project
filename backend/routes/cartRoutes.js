@@ -19,6 +19,7 @@ router.post('/sync', protect, async (req, res) => {
   try {
     const { items } = req.body;
     console.log("User ID from token:", req.user.id);
+    console.log(typeof req.user.id);
     
     let cart = await Cart.findOneAndUpdate(
       { userId: req.user.id },

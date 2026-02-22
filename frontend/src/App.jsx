@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import LoginForm from './auth/loginForm';
 import RegisterForm from './auth/registerForm';
 import AddProductForm from './forms/addProductForm';
 import ProtectedRoute from './components/protectedRoute';
 import VendorDashboard from './components/vendorDashboard';
 import Home from './pages/homePage';
-import ProductPage from './pages/productPage';
+import ProductPage, { useCartSync } from './pages/productPage';
 import UserDetails from './pages/UserDetails';
 import Checkout from './pages/CheckoutPage';
+import { apiCall } from './api';
 
 // --- STYLISH NAVBAR COMPONENT ---
 const Navbar = () => {
@@ -80,14 +81,28 @@ const Navbar = () => {
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const dispatch = useDispatch();
 
+  useCartSync(isAuthenticated);
   useEffect(() => {
     // Check if a user token exists in local storage
     const token = localStorage.getItem("token");
     if (token) {
       setIsAuthenticated(true);
     }
-  }, []);
+
+    // Hydrate the Redux store from the Database on load
+    const fetchCart = async () => {
+      try {
+        const res = await apiCall('/api/cart', 'GET');
+        // Update Redux with the items found in MongoDB
+        dispatch({ type: 'SET_CART', payload: res.data });
+      } catch (err) {
+        console.error("Could not fetch initial cart", err);
+      }
+    };
+    fetchCart();
+  }, [dispatch]);
 
   return (
     <Router>
