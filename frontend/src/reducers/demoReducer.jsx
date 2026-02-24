@@ -46,6 +46,12 @@ export default function demoReducer(state = initialState, action) {
         }, [])
       };
 
+    case 'SET_CART':
+      return {
+        ...state,
+        cart: Array.isArray(action.payload) ? action.payload : []
+      };
+
     case 'CLEAR_DATA':
       return initialState;
     default:

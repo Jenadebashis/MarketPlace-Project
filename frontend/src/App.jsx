@@ -16,7 +16,21 @@ import { apiCall } from './api';
 const Navbar = () => {
 
   const cart = useSelector((state) => state.demo.cart);
-  const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
+  const [itemCount, setItemCount] = useState(0);
+
+  useEffect(() => {
+    // 1. Calculate the total
+    const total = cart.reduce((acc, item) => acc + item.qty, 0);
+
+    // 2. Update local state if needed
+    setItemCount(total);
+
+    // 3. Optional: Sync with LocalStorage so the cart persists on refresh
+    localStorage.setItem('cart', JSON.stringify(cart));
+
+    console.log(`Cart updated! Total items: ${total}`);
+
+  }, [cart]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -41,9 +55,9 @@ const Navbar = () => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
-          {totalItems > 0 && (
+          {itemCount > 0 && (
             <span className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white">
-              {totalItems}
+              {itemCount}
             </span>
           )}
         </Link>
@@ -96,7 +110,8 @@ function App() {
       try {
         const res = await apiCall('/api/cart', 'GET');
         // Update Redux with the items found in MongoDB
-        dispatch({ type: 'SET_CART', payload: res.data });
+        console.log('the res coming here is: ', {res});
+        dispatch({ type: 'SET_CART', payload: res });
       } catch (err) {
         console.error("Could not fetch initial cart", err);
       }
