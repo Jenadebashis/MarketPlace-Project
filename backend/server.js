@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import express from "express";
+import { createServer } from 'http'; // 1. Added
+import { Server } from 'socket.io';  // 2. Added
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import cors from 'cors';
@@ -27,12 +29,20 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const app = express();
+const httpServer = createServer(app); // 3. Wrap express app
 app.use(express.json());
 const allowedOrigins = [
   'https://marketplacedj.netlify.app',
   'http://localhost:5173',                      // Your local React app
   'https://marketplace-project-xi5v.onrender.com' // Your deployed app (no trailing slash)
 ];
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true
+  }
+});
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -123,11 +133,36 @@ app.post('/api/auth/login', catchAsync(async (req, res) => {
   });
 }));
 
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) return next(new Error("Authentication error"));
+
+  jwt.verify(token, process.env.JWT_SECRET || 'strong_secret', (err, decoded) => {
+    if (err) return next(new Error("Authentication error"));
+    socket.user = decoded; 
+    next();
+  });
+});
+
+io.on('connection', (socket) => {
+  console.log(`User connected: ${socket.user.id}`);
+
+  socket.on('send_message', (data) => {
+    io.emit('receive_message', {
+      text: data.text,
+      senderId: socket.user.id,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  socket.on('disconnect', () => console.log('User disconnected'));
+});
+
 // --- 2. GLOBAL ERROR HANDLER (MUST BE AFTER ROUTES) ---
 
 app.use(globalErrorHandler);
 
 const PORT = 3000;
-app.listen(PORT, '0.0.0.0' ,() => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server & WebSockets running on port ${PORT}`);
 });

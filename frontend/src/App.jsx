@@ -95,6 +95,8 @@ const Navbar = () => {
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // const { messages, isConnected } = useSelector((state) => state.chat);
+  // const [text, setText] = useState('');
   const dispatch = useDispatch();
 
   useCartSync(isAuthenticated);
@@ -117,6 +119,14 @@ function App() {
       }
     };
     fetchCart();
+  }, [dispatch]);
+
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    dispatch({ type: 'socket/connect', payload: { token } });
+
+    return () => dispatch({ type: 'socket/disconnect' });
   }, [dispatch]);
 
   return (
