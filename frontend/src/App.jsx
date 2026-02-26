@@ -11,6 +11,7 @@ import ProductPage, { useCartSync } from './pages/productPage';
 import UserDetails from './pages/UserDetails';
 import Checkout from './pages/CheckoutPage';
 import { apiCall } from './api';
+import NotificationToast from './utils/Notification';
 
 // --- STYLISH NAVBAR COMPONENT ---
 const Navbar = () => {
@@ -133,6 +134,7 @@ function App() {
     <Router>
       <div className="min-h-screen w-full bg-slate-50 font-sans text-gray-900">
         <Navbar />
+        <NotificationToast />
 
         <main className="container mx-auto">
           <Routes>

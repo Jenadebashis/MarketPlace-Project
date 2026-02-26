@@ -111,7 +111,10 @@ const ProductPage = () => {
                     <div className="mt-6">
                       {quantity === 0 ? (
                         <button
-                          onClick={() => dispatch({ type: 'ADD_TO_CART', payload: product })}
+                          onClick={() => {
+                            dispatch({ type: 'cart/add_request', payload: product });
+                            dispatch({ type: 'ADD_TO_CART', payload: product });
+                          }}
                           className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition active:scale-95 shadow-lg shadow-emerald-100"
                         >
                           Add to Cart
