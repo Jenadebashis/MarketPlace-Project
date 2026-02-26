@@ -147,6 +147,28 @@ io.use((socket, next) => {
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.user.id}`);
 
+  const buyerId = socket.user.id;
+  socket.join(`user_${buyerId}`);
+
+  socket.on('add_to_cart', (product) => {
+    // 1. Identify the seller from the incoming data
+    const sellerId = product.vendorId;
+
+    // 2. Send the notification to the SELLER'S room
+    io.to(`user_${sellerId}`).emit('notification', {
+      type: 'NEW_SALE_INTEREST',
+      message: `A customer just added ${product.name} to their cart!`,
+      buyerId: buyerId,
+      timestamp: new Date()
+    });
+    
+    // Optional: Still notify the buyer that it worked
+    socket.emit('notification', {
+      type: 'SUCCESS',
+      message: 'Added to your cart'
+    });
+  });
+
   socket.on('send_message', (data) => {
     io.emit('receive_message', {
       text: data.text,
