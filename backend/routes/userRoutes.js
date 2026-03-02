@@ -10,6 +10,7 @@ router.get('/dashboard', protect, verifySeller, async (req, res) => {
     const id = req.vendorId;
     const user = await User.findOne({ where: { id } });
     const userDetails = {
+      id: user.id,
       name: user.name,
       email: user.email,
       role: user.role
@@ -42,6 +43,7 @@ router.get('/', async (req, res) => {
     }
 
     const userDetails = {
+      id: user.id,
       name: user.name,
       email: user.email,
       role: user.role

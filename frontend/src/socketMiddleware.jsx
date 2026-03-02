@@ -6,17 +6,17 @@ const socketMiddleware = () => {
     switch (action.type) {
       case 'socket/connect':
         if (socket) socket.disconnect();
-        
+
         socket = io('https://marketplace-project-xi5v.onrender.com/', {
           auth: { token: action.payload.token }
         });
 
         // --- INCOMING SERVER EVENTS ---
-        
+
         // Listen for notifications (Sent by server when someone adds vendor's item to cart)
         socket.on('notification', (data) => {
           store.dispatch({ type: 'notifications/show', payload: data });
-          
+
           setTimeout(() => {
             store.dispatch({ type: 'notifications/hide' });
           }, 3000);
@@ -24,6 +24,14 @@ const socketMiddleware = () => {
 
         socket.on('receive_message', (msg) => {
           store.dispatch({ type: 'chat/addMessage', payload: msg });
+          store.dispatch({
+            type: 'inbox/updateLastMessage',
+            payload: {
+              roomId: msg.roomId,
+              text: msg.text,
+              timestamp: msg.timestamp
+            }
+          });
         });
 
         socket.on('connect', () => store.dispatch({ type: 'chat/setConnected', payload: true }));
@@ -39,8 +47,15 @@ const socketMiddleware = () => {
         }
         return next(action); // Continue to update local cart state if needed
 
+      case 'socket/join_room':
+        if (socket) socket.emit('join_chat', { roomId: action.payload });
+        break;
+
       case 'socket/send':
-        if (socket) socket.emit('send_message', { text: action.payload });
+        if (socket) {
+          // payload should now be { roomId, text }
+          socket.emit('send_message', action.payload);
+        }
         break;
 
       case 'socket/disconnect':

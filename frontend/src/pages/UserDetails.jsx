@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, Package, Mail, ShieldCheck, AlertCircle } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { User, Package, Mail, ShieldCheck, AlertCircle, MessageCircle } from 'lucide-react'; // Added MessageCircle
+import { useParams, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { apiCall } from '../api';
 
 const UserDetails = () => {
@@ -8,27 +8,48 @@ const UserDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!id) {
+      setError("No user ID provided in the URL.");
+      setLoading(false);
+      return;
+    }
+
     const fetchSeller = async () => {
       try {
-        const response = await apiCall(`/api/user?id=${id}`, 'GET'); // Adjust path as needed
-        console.log("Full Response:", response);
+        const response = await apiCall(`/api/user?id=${id}`, 'GET');
         setData(response);
         setLoading(false);
-      } catch (error) {
+      } catch (err) {
         setError(err.message);
         setLoading(false);
       }
     };
-
     fetchSeller();
   }, [id]);
 
+  const handleStartChat = () => {
+
+    // Pass the seller details to the Chat Page
+    // We don't need a specific product to start a general chat, 
+    // but we can pass the first product as a reference if needed.
+    navigate('/messages', {
+      state: {
+        sellerId: id,
+        sellerName: data.userDetails.name,
+        // Optional: Reference a product if they clicked "Chat" from a specific card
+        product: data.products[0]
+      }
+    });
+  };
+
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
   if (error) return <div className="text-red-500 flex items-center gap-2 p-4"><AlertCircle /> {error}</div>;
+  if (!data) return null; // Extra safety check
 
-  const { userDetails, products } = data;
+  const { userDetails, products = [] } = data || {};
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-12">
@@ -46,6 +67,17 @@ const UserDetails = () => {
               <span className="flex items-center gap-1.5"><Mail size={16} /> {userDetails.email}</span>
               <span className="flex items-center gap-1.5 capitalize"><ShieldCheck size={16} /> {userDetails.role}</span>
             </div>
+
+            {/* --- MESSAGE SELLER BUTTON --- */}
+            {currentUser?.id !== id && (
+              <button
+                onClick={handleStartChat}
+                className="mt-6 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-indigo-100 active:scale-95"
+              >
+                <MessageCircle size={18} />
+                Message Seller
+              </button>
+            )}
           </div>
 
           <div className="bg-slate-100 px-6 py-3 rounded-2xl">

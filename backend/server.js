@@ -11,16 +11,18 @@ import jwt from 'jsonwebtoken';
 import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { globalErrorHandler } from './middleware/globalErrorHandler.js';
 import { registrationSchema } from './utils/validation.js';
+import Message from './models/Message.js';
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 // 1. UTILITY: Catch-all for async errors (Replaces try/catch)
 const catchAsync = (fn) => (req, res, next) => {
-  fn(req, res, next).catch(next); 
+  fn(req, res, next).catch(next);
 };
 
 const uploadDir = 'uploads/';
@@ -48,7 +50,7 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -73,6 +75,7 @@ mongoose.connect(process.env.MONGODB_CONNECTION)
 app.use('/api/product', productRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/chat', chatRoutes);
 
 // --- UPDATED ROUTES USING catchAsync ---
 
@@ -139,7 +142,7 @@ io.use((socket, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET || 'strong_secret', (err, decoded) => {
     if (err) return next(new Error("Authentication error"));
-    socket.user = decoded; 
+    socket.user = decoded;
     next();
   });
 });
@@ -161,7 +164,7 @@ io.on('connection', (socket) => {
       buyerId: buyerId,
       timestamp: new Date()
     });
-    
+
     // Optional: Still notify the buyer that it worked
     socket.emit('notification', {
       type: 'SUCCESS',
@@ -169,12 +172,41 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('send_message', (data) => {
-    io.emit('receive_message', {
-      text: data.text,
-      senderId: socket.user.id,
-      timestamp: new Date().toISOString()
-    });
+  socket.on('join_chat', ({ roomId }) => {
+    socket.join(roomId);
+    console.log(`User joined room: ${roomId}`);
+  });
+
+  // 2. Message is sent ONLY to that room
+  socket.on('send_message', async (data) => {
+    const { roomId, text, productId, sellerId } = data;
+
+    try {
+      // 1. Save the individual message
+      const newMessage = await Message.create({
+        roomId,
+        senderId: socket.user.id,
+        text
+      });
+
+      // 2. Update (or Create) the Conversation for the Inbox
+      await Conversation.findOneAndUpdate(
+        { roomId },
+        {
+          lastMessage: text,
+          lastTimestamp: new Date(),
+          $addToSet: { participants: [socket.user.id, sellerId] },
+          productId: productId
+        },
+        { upsert: true, new: true }
+      );
+
+      // 3. Broadcast LIVE to everyone in the room
+      io.to(roomId).emit('receive_message', newMessage);
+
+    } catch (err) {
+      console.error("Socket message error:", err);
+    }
   });
 
   socket.on('disconnect', () => console.log('User disconnected'));
