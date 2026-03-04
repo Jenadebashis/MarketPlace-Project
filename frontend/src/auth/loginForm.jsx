@@ -1,22 +1,31 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { apiCall } from '../api';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
   const { register, handleSubmit, formState: { isSubmitting } } = useForm();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const onSubmit = async (data) => {
     try {
       const response = await apiCall('/api/auth/login', 'POST', data);
 
       // 1. Extract token from response
-      const { token } = response; // Assuming your backend returns { token: "..." }
+      const { token, user } = response; // Assuming your backend returns { token: "..." }
 
       // 2. Save to localStorage for the Interceptor
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      console.log('the user details coming here is: ', {response});
+
+      dispatch({ type: 'SET_USER_DETAILS', payload: user })
 
       alert("Login Successful!");
-      window.location.href = "/dashboard"; // Redirect after login
+      navigate('/dashboard');
     } catch (error) {
       console.error(error);
       alert(error.response?.data?.message || "Invalid credentials");

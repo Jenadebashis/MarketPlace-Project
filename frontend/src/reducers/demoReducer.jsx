@@ -1,6 +1,7 @@
 const initialState = {
   list: [],
   cart: [], // Added cart array
+  user: {},
   loading: false,
   error: null
 };
@@ -51,6 +52,15 @@ export default function demoReducer(state = initialState, action) {
         ...state,
         cart: Array.isArray(action.payload) ? action.payload : []
       };
+
+    case 'SET_USER_DETAILS': {
+      console.log('SET USER DETAILS CALLED WITH: ', action.payload);
+      return {
+        ...state,
+        user: action.payload,
+      };
+    }
+
 
     case 'CLEAR_DATA':
       return initialState;

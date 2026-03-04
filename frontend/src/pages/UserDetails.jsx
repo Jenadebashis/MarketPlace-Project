@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { User, Package, Mail, ShieldCheck, AlertCircle, MessageCircle } from 'lucide-react'; // Added MessageCircle
 import { useParams, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { apiCall } from '../api';
+import { useSelector } from 'react-redux';
 
 const UserDetails = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
+  const storedUser = localStorage.getItem('user');
+  const user = storedUser ? JSON.parse(storedUser) : null;
   const navigate = useNavigate();
+  console.log('the value of id and user over here is: ', { id, user });
 
   useEffect(() => {
     if (!id) {
@@ -18,8 +22,10 @@ const UserDetails = () => {
     }
 
     const fetchSeller = async () => {
+      console.log('it is getting called or not');
       try {
         const response = await apiCall(`/api/user?id=${id}`, 'GET');
+        console.log('the response coming over here is: ', { response });
         setData(response);
         setLoading(false);
       } catch (err) {
@@ -31,16 +37,14 @@ const UserDetails = () => {
   }, [id]);
 
   const handleStartChat = () => {
+    if (!data || !data.userDetails) return; // Prevent crashes if data hasn't loaded
 
-    // Pass the seller details to the Chat Page
-    // We don't need a specific product to start a general chat, 
-    // but we can pass the first product as a reference if needed.
     navigate('/messages', {
       state: {
         sellerId: id,
         sellerName: data.userDetails.name,
-        // Optional: Reference a product if they clicked "Chat" from a specific card
-        product: data.products[0]
+        // Use optional chaining for products
+        product: data.products?.[0]
       }
     });
   };
@@ -69,7 +73,7 @@ const UserDetails = () => {
             </div>
 
             {/* --- MESSAGE SELLER BUTTON --- */}
-            {currentUser?.id !== id && (
+            {user && String(user.id) !== String(id) && (
               <button
                 onClick={handleStartChat}
                 className="mt-6 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-indigo-100 active:scale-95"
