@@ -23,6 +23,7 @@ const socketMiddleware = () => {
         });
 
         socket.on('receive_message', (msg) => {
+          console.log('the message coming here is: ', {msg});
           store.dispatch({ type: 'chat/addMessage', payload: msg });
           store.dispatch({
             type: 'inbox/updateLastMessage',

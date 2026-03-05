@@ -3,6 +3,8 @@ import React from "react";
 const MessageList = ({ messages, currentUserId }) => {
   const scrollRef = React.useRef();
 
+  console.log('the value of messages and currentUserId coming here is: ', {messages, currentUserId});
+
   React.useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);

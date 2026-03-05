@@ -191,6 +191,7 @@ io.on('connection', (socket) => {
         senderId: socket.user.id,
         text
       });
+      console.log('✅ Message saved to DB');
 
       // 2. Update (or Create) the Conversation for the Inbox
       await Conversation.findOneAndUpdate(
@@ -204,11 +205,18 @@ io.on('connection', (socket) => {
         },
         { upsert: true, new: true }
       );
-      // 3. Broadcast LIVE to everyone in the room
+
+      console.log('✅ Conversation updated');
+
+      const clients = io.sockets.adapter.rooms.get(roomId);
+      console.log(`Sending to ${clients ? clients.size : 0} users in room ${roomId}`);
+
       io.to(roomId).emit('receive_message', newMessage);
 
     } catch (err) {
-      console.error("Socket message error:", err);
+      console.error('❌ SERVER ERROR:', err.message);
+      // Send error to frontend so you know why it failed
+      socket.emit('error_message', { error: err.message });
     }
   });
 

@@ -9,9 +9,12 @@ const ChatPage = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const { conversations } = useSelector(state => state.inbox);
   const { messages, isConnected } = useSelector(state => state.chat);
-  const { user: currentUser } = useSelector(state => state.demo);
+  const storedUser = localStorage.getItem('user');
+  const user = storedUser ? JSON.parse(storedUser) : null;
   const dispatch = useDispatch();
   const location = useLocation();
+  
+  console.log('the value of messages and currentUserId coming here is: ', {messages, user});
   
   // Accessing the data you sent
   const { sellerId } = location.state || {};
@@ -80,7 +83,7 @@ const ChatPage = () => {
             </div>
           </div>
 
-          <MessageList currentUserId={currentUser.id} messages={messages} />
+          <MessageList currentUserId={user.id} messages={messages} />
 
           <ChatInput roomId={selectedChat.roomId} isConnected={isConnected} sellerId={sellerId} />
         </div>
