@@ -17,7 +17,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { globalErrorHandler } from './middleware/globalErrorHandler.js';
 import { registrationSchema } from './utils/validation.js';
-import Message from './models/Message.js';
+import { Conversation, Message } from './models/Message.js';
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 // 1. UTILITY: Catch-all for async errors (Replaces try/catch)

@@ -2,12 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { apiCall } from '../api';
 import MessageList from '../components/MessageList';
+import ChatInput from '../components/ChatInput';
+import { useLocation } from 'react-router-dom';
 
 const ChatPage = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const { conversations } = useSelector(state => state.inbox);
   const { messages, isConnected } = useSelector(state => state.chat);
+  const { user: currentUser } = useSelector(state => state.demo);
   const dispatch = useDispatch();
+  const location = useLocation();
+  
+  // Accessing the data you sent
+  const { sellerId } = location.state || {};
 
   // 1. Fetch History when a chat is clicked
   const openConversation = async (chat) => {
@@ -18,6 +25,25 @@ const ChatPage = () => {
       dispatch({ type: 'socket/join_room', payload: chat.roomId });
     } catch (err) { console.error("History error", err); }
   };
+
+  useEffect(() => {
+  if (sellerId) {
+    // 1. Check if we already have a chat with this person in our list
+    const existingChat = conversations.find(c => c.otherPartyId === sellerId);
+
+    if (existingChat) {
+      openConversation(existingChat);
+    } else {
+      // 2. If no history, we "Mock" a selected chat so the UI opens
+      // This allows the user to type a message before the room is officially saved in DB
+      setSelectedChat({
+        roomId: `temp-${sellerId}`, // Temporary ID
+        otherPartyName: "New Message", // You'd ideally pass the name via state too
+        product: { image: "", name: "Inquiry" } 
+      });
+    }
+  }
+}, [sellerId, conversations]);
 
   return (
     <div className="pt-16 h-screen bg-white max-w-2xl mx-auto shadow-lg border-x">
@@ -56,7 +82,7 @@ const ChatPage = () => {
 
           <MessageList currentUserId={currentUser.id} messages={messages} />
 
-          <ChatInput roomId={selectedChat.roomId} isConnected={isConnected} />
+          <ChatInput roomId={selectedChat.roomId} isConnected={isConnected} sellerId={sellerId} />
         </div>
       )}
     </div>

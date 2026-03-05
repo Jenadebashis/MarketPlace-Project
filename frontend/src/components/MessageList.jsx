@@ -1,3 +1,5 @@
+import React from "react";
+
 const MessageList = ({ messages, currentUserId }) => {
   const scrollRef = React.useRef();
 
