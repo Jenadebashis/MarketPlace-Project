@@ -198,12 +198,12 @@ io.on('connection', (socket) => {
         {
           lastMessage: text,
           lastTimestamp: new Date(),
-          $addToSet: { participants: [socket.user.id, Number(sellerId)] },
+          // Use $each to add IDs individually rather than as a nested array
+          $addToSet: { participants: { $each: [socket.user.id, Number(sellerId)] } },
           productId: productId
         },
         { upsert: true, new: true }
       );
-
       // 3. Broadcast LIVE to everyone in the room
       io.to(roomId).emit('receive_message', newMessage);
 

@@ -11,7 +11,7 @@ const messageSchema = new mongoose.Schema({
 // Conversation/Inbox Schema
 const conversationSchema = new mongoose.Schema({
   roomId: { type: String, unique: true, required: true },
-  participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  participants: [{ type: Number, ref: 'User' }],
   productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
   lastMessage: { type: String },
   lastTimestamp: { type: Date, default: Date.now },
