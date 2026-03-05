@@ -198,7 +198,7 @@ io.on('connection', (socket) => {
         {
           lastMessage: text,
           lastTimestamp: new Date(),
-          $addToSet: { participants: [socket.user.id, sellerId] },
+          $addToSet: { participants: [socket.user.id, Number(sellerId)] },
           productId: productId
         },
         { upsert: true, new: true }
