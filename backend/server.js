@@ -180,6 +180,9 @@ io.on('connection', (socket) => {
   // 2. Message is sent ONLY to that room
   socket.on('send_message', async (data) => {
     const { roomId, text, productId, sellerId } = data;
+    console.log('--- Debugging Message Error ---');
+    console.log('User ID from Socket:', socket.user.id);
+    console.log('Type of User ID:', typeof socket.user.id);
 
     try {
       // 1. Save the individual message
