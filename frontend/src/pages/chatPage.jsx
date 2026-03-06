@@ -4,6 +4,7 @@ import { apiCall } from '../api';
 import MessageList from '../components/MessageList';
 import ChatInput from '../components/ChatInput';
 import { useLocation } from 'react-router-dom';
+import generateRoomId from '../utils/generateId';
 
 const ChatPage = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -13,11 +14,14 @@ const ChatPage = () => {
   const user = storedUser ? JSON.parse(storedUser) : null;
   const dispatch = useDispatch();
   const location = useLocation();
-  
-  console.log('the value of messages and currentUserId coming here is: ', {messages, user});
-  
+
+  console.log('the value of messages and currentUserId coming here is: ', { messages, user });
+
   // Accessing the data you sent
   const { sellerId } = location.state || {};
+
+  const currentUserId = user?.id; // Make sure you have the logged-in user ID
+  const generatedId = generateRoomId(currentUserId, sellerId);
 
   // 1. Fetch History when a chat is clicked
   const openConversation = async (chat) => {
@@ -30,23 +34,30 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-  if (sellerId) {
-    // 1. Check if we already have a chat with this person in our list
-    const existingChat = conversations.find(c => c.otherPartyId === sellerId);
+    if (sellerId) {
+      // 1. Check if we already have a chat with this person in our list
+      const existingChat = conversations.find(c => c.otherPartyId === sellerId);
 
-    if (existingChat) {
-      openConversation(existingChat);
-    } else {
-      // 2. If no history, we "Mock" a selected chat so the UI opens
-      // This allows the user to type a message before the room is officially saved in DB
-      setSelectedChat({
-        roomId: `temp-${sellerId}`, // Temporary ID
-        otherPartyName: "New Message", // You'd ideally pass the name via state too
-        product: { image: "", name: "Inquiry" } 
-      });
+      if (existingChat) {
+        openConversation(existingChat);
+      } else {
+        // 2. If no history, we "Mock" a selected chat so the UI opens
+        // This allows the user to type a message before the room is officially saved in DB
+        setSelectedChat({
+          roomId: generatedId, // Temporary ID
+          otherPartyName: "New Message", // You'd ideally pass the name via state too
+          product: { image: "", name: "Inquiry" }
+        });
+      }
     }
-  }
-}, [sellerId, conversations]);
+  }, [sellerId, conversations]);
+
+  useEffect(() => {
+    if (selectedChat?.roomId && isConnected) {
+      console.log("Joining room:", selectedChat.roomId);
+      dispatch({ type: 'socket/join_room', payload: selectedChat.roomId });
+    }
+  }, [selectedChat?.roomId, isConnected, dispatch]);
 
   return (
     <div className="pt-16 h-screen bg-white max-w-2xl mx-auto shadow-lg border-x">
