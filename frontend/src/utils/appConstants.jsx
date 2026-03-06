@@ -1,0 +1,1 @@
+export const imgSrc = 'https://imgs.search.brave.com/y3jhA9Soy8q9KT5a1qeTA_GzrWI-mMV-QIH_DvgH5LU/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/c3RvY2t2YXVsdC5u/ZXQvZGF0YS8yMDE5/LzAzLzA2LzI2MTc3/Ni90aHVtYjE2Lmpw/Zw';
