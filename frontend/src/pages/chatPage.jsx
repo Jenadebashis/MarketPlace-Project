@@ -23,17 +23,24 @@ const ChatPage = () => {
 
   // 2. Fetch History & Update activeSellerId
   const openConversation = async (chat) => {
+    if (!chat?.roomId) return;
+
+    dispatch({ type: 'inbox/markAsRead', payload: chat.roomId });
     setSelectedChat(chat);
-    // Crucial: Set the sellerId from the chat object so ChatInput has it
     setActiveSellerId(chat.otherPartyId);
 
     try {
-      const history = await apiCall(`/api/chat/history/${chat.roomId}`, 'GET');
+      const [history] = await Promise.all([
+        apiCall(`/api/chat/history/${chat.roomId}`, 'GET'),
+        apiCall(`/api/chat/read/${chat.roomId}`, 'PUT')
+      ]);
+
       dispatch({ type: 'chat/setMessages', payload: history });
       dispatch({ type: 'socket/join_room', payload: chat.roomId });
-    } catch (err) { console.error("History error", err); }
+    } catch (err) {
+      console.error("Failed to open chat:", err);
+    }
   };
-
   // 3. Fetch Inbox on mount
   useEffect(() => {
     const fetchInbox = async () => {

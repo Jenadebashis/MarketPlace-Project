@@ -13,25 +13,21 @@ import Checkout from './pages/CheckoutPage';
 import { apiCall } from './api';
 import NotificationToast from './utils/Notification';
 import ChatPage from './pages/chatPage';
+import { MailIcon } from 'lucide-react';
 
 // --- STYLISH NAVBAR COMPONENT ---
 const Navbar = () => {
 
   const cart = useSelector((state) => state.demo.cart);
   const { conversations } = useSelector((state) => state.inbox);
-  const [unreadCount, setUnreadCount] = useState(0); 
   const [itemCount, setItemCount] = useState(0);
 
+  const totalUnread = conversations.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0);
+
   useEffect(() => {
-    // 1. Calculate the total
     const total = cart.reduce((acc, item) => acc + item.qty, 0);
-    const convcount = conversations.filter((c) => c.unread).length;
-
-    // 2. Update local state if needed
     setItemCount(total);
-    setUnreadCount(convcount);
 
-    // 3. Optional: Sync with LocalStorage so the cart persists on refresh
     localStorage.setItem('cart', JSON.stringify(cart));
     localStorage.setItem('conversations', JSON.stringify(conversations));
 
@@ -75,23 +71,11 @@ const Navbar = () => {
         >
           Join Now
         </Link>
-        <Link to="/messages" className="relative p-2 block">
-          <svg
-            className="w-6 h-6 text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
-          </svg>
-          {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-              {unreadCount}
+        <Link to="/messages" className="relative">
+          <MailIcon className="w-6 h-6" />
+          {totalUnread > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border-2 border-white">
+              {totalUnread > 9 ? '9+' : totalUnread}
             </span>
           )}
         </Link>

@@ -52,4 +52,12 @@ router.get('/history/:roomId', protect, async (req, res) => {
   }
 });
 
+router.put('/read/:roomId', protect, async (req, res) => {
+  await Conversation.findOneAndUpdate(
+    { roomId: req.params.roomId },
+    { unreadCount: 0 }
+  );
+  res.status(200).json({ success: true });
+});
+
 export default router;

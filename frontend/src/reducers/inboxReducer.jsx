@@ -6,40 +6,40 @@ const initialState = {
 
 export default function inboxReducer(state = initialState, action) {
   switch (action.type) {
-    
+
     // 1. Start loading state (useful for showing a spinner on the Inbox page)
     case 'inbox/setLoading':
-      return { 
-        ...state, 
-        loading: true, 
-        error: null 
+      return {
+        ...state,
+        loading: true,
+        error: null
       };
 
     // 2. Populate the inbox (called after your GET /api/chat/inbox API call)
     case 'inbox/setConversations':
-      return { 
-        ...state, 
-        conversations: action.payload, 
-        loading: false 
+      return {
+        ...state,
+        conversations: action.payload,
+        loading: false
       };
 
     // 3. REAL-TIME UPDATE: When a socket message arrives, update the snippet
     case 'inbox/updateLastMessage': {
       const { roomId, text, timestamp } = action.payload;
-      
-      // We find the specific conversation and move it to the top of the list
+
       const updatedConversations = state.conversations.map(conv => {
         if (conv.roomId === roomId) {
-          return { 
-            ...conv, 
-            lastMessage: text, 
-            timestamp: timestamp 
+          return {
+            ...conv,
+            lastMessage: text,
+            timestamp: timestamp,
+            // 💡 Increment the count by 1 every time a message arrives
+            unreadCount: (conv.unreadCount || 0) + 1
           };
         }
         return conv;
       });
 
-      // Optional: Sort so the most recent message is always at the top
       return {
         ...state,
         conversations: updatedConversations.sort(
@@ -48,12 +48,23 @@ export default function inboxReducer(state = initialState, action) {
       };
     }
 
+    case 'inbox/markAsRead': {
+      return {
+        ...state,
+        conversations: state.conversations.map(conv =>
+          conv.roomId === action.payload
+            ? { ...conv, unreadCount: 0 }
+            : conv
+        )
+      };
+    }
+
     // 4. Handle errors
     case 'inbox/setError':
-      return { 
-        ...state, 
-        error: action.payload, 
-        loading: false 
+      return {
+        ...state,
+        error: action.payload,
+        loading: false
       };
 
     default:

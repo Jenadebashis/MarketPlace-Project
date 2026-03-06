@@ -194,14 +194,15 @@ io.on('connection', (socket) => {
       console.log('✅ Message saved to DB');
 
       // 2. Update (or Create) the Conversation for the Inbox
-      await Conversation.findOneAndUpdate(
+      const updatedConversation = await Conversation.findOneAndUpdate(
         { roomId },
         {
           lastMessage: text,
           lastTimestamp: new Date(),
-          // Use $each to add IDs individually rather than as a nested array
           $addToSet: { participants: { $each: [socket.user.id, Number(sellerId)] } },
-          productId: productId
+          productId: productId,
+          // 💡 This is the key: Increment the count by 1 for every new message
+          $inc: { unreadCount: 1 }
         },
         { upsert: true, new: true }
       );
@@ -212,6 +213,10 @@ io.on('connection', (socket) => {
       console.log(`Sending to ${clients ? clients.size : 0} users in room ${roomId}`);
 
       io.to(roomId).emit('receive_message', newMessage);
+      io.emit('update_unread_count', {
+        roomId,
+        newCount: updatedConversation.unreadCount
+      });
 
     } catch (err) {
       console.error('❌ SERVER ERROR:', err.message);
