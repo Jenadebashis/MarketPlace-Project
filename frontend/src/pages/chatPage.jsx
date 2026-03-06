@@ -34,6 +34,20 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
+    const fetchInbox = async () => {
+      try {
+        const data = await apiCall('/api/chat/inbox', 'GET');
+        // Assuming your reducer handles setting the full list
+        dispatch({ type: 'inbox/setConversations', payload: data });
+      } catch (err) {
+        console.error("Failed to fetch inbox:", err);
+      }
+    };
+
+    fetchInbox();
+  }, []);
+
+  useEffect(() => {
     if (sellerId) {
       // 1. Check if we already have a chat with this person in our list
       const existingChat = conversations.find(c => c.otherPartyId === sellerId);

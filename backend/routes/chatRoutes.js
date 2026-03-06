@@ -4,31 +4,36 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// 1. Get Inbox (All conversations for the logged-in user)
 router.get('/inbox', protect, async (req, res) => {
   try {
+    // req.user.id is likely a string from the token, convert to Number for the query
+    const currentUserId = Number(req.user.id);
+
     const conversations = await Conversation.find({
-      participants: req.user.id
+      participants: currentUserId
     })
-      .populate('participants', 'name email')
+      // You can still populate productId if it's a real MongoDB ObjectId
       .populate('productId', 'name price image')
       .lean()
       .sort({ lastTimestamp: -1 });
 
-    // Format for frontend
     const formattedInbox = conversations.map(conv => {
-      const otherParty = conv.participants.find(p => p._id.toString() !== req.user.id);
+      // Find the ID that is NOT the current user
+      const otherPartyId = conv.participants.find(p => Number(p) !== currentUserId);
+
       return {
         roomId: conv.roomId,
-        otherPartyName: otherParty?.name || "User",
+        otherPartyId: otherPartyId, // Useful for the frontend .find logic
+        otherPartyName: `User ${otherPartyId}`, // Temporary until you fetch user names
         lastMessage: conv.lastMessage,
         timestamp: conv.lastTimestamp,
-        product: conv.productId
+        product: conv.productId || { name: "Product", image: "" }
       };
     });
 
     res.json(formattedInbox);
   } catch (err) {
+    console.error("Inbox Error:", err);
     res.status(500).json({ message: "Server Error fetching inbox" });
   }
 });
