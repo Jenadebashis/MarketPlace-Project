@@ -10,64 +10,59 @@ const ChatPage = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const { conversations } = useSelector(state => state.inbox);
   const { messages, isConnected } = useSelector(state => state.chat);
+
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(storedUser) : null;
+  const currentUserId = user?.id;
+
   const dispatch = useDispatch();
   const location = useLocation();
 
-  console.log('the value of messages and currentUserId coming here is: ', { messages, user, conversations });
+  // 1. Get initial sellerId from navigation state (if coming from a product)
+  const [activeSellerId, setActiveSellerId] = useState(location.state?.sellerId || null);
 
-  // Accessing the data you sent
-  const { sellerId } = location.state || {};
-
-  const currentUserId = user?.id; // Make sure you have the logged-in user ID
-  const generatedId = generateRoomId(currentUserId, sellerId);
-
-  // 1. Fetch History when a chat is clicked
+  // 2. Fetch History & Update activeSellerId
   const openConversation = async (chat) => {
     setSelectedChat(chat);
+    // Crucial: Set the sellerId from the chat object so ChatInput has it
+    setActiveSellerId(chat.otherPartyId);
+
     try {
       const history = await apiCall(`/api/chat/history/${chat.roomId}`, 'GET');
-      const hv = [...history];
-      console.log('the type of history is: ', typeof(history), typeof(hv));
-      console.log('the history we are getting is: ', {history, hv});
-      dispatch({ type: 'chat/setMessages', payload: hv });
+      dispatch({ type: 'chat/setMessages', payload: history });
       dispatch({ type: 'socket/join_room', payload: chat.roomId });
     } catch (err) { console.error("History error", err); }
   };
 
+  // 3. Fetch Inbox on mount
   useEffect(() => {
     const fetchInbox = async () => {
       try {
         const data = await apiCall('/api/chat/inbox', 'GET');
-        // Assuming your reducer handles setting the full list
         dispatch({ type: 'inbox/setConversations', payload: data });
-      } catch (err) {
-        console.error("Failed to fetch inbox:", err);
-      }
+      } catch (err) { console.error("Inbox fetch failed", err); }
     };
-
     fetchInbox();
-  }, []);
+  }, [dispatch]);
 
+  // 4. Handle Redirection from Product Page
   useEffect(() => {
-    if (sellerId) {
-      // 1. Check if we already have a chat with this person in our list
-      const existingChat = conversations.find(c => c.otherPartyId === sellerId);
+    if (activeSellerId && conversations.length > 0) {
+      const existingChat = conversations.find(c => Number(c.otherPartyId) === Number(activeSellerId));
 
       if (existingChat) {
         openConversation(existingChat);
-      } else {
-        // 2. If no history, we "Mock" a selected chat so the UI opens
-        // This allows the user to type a message before the room is officially saved in DB
+      } else if (!selectedChat) {
+        const generatedId = generateRoomId(currentUserId, activeSellerId);
         setSelectedChat({
-          roomId: generatedId, // Temporary ID
-          otherPartyName: "New Message", // You'd ideally pass the name via state too
+          roomId: generatedId,
+          otherPartyName: "New Message",
+          otherPartyId: activeSellerId, // Ensure this is kept
           product: { image: "", name: "Inquiry" }
         });
       }
     }
-  }, [sellerId, conversations]);
+  }, [activeSellerId, conversations]);
 
   useEffect(() => {
     if (selectedChat?.roomId && isConnected) {
@@ -113,7 +108,7 @@ const ChatPage = () => {
 
           <MessageList currentUserId={user.id} messages={messages} />
 
-          <ChatInput roomId={selectedChat.roomId} isConnected={isConnected} sellerId={sellerId} />
+          <ChatInput roomId={selectedChat.roomId} isConnected={isConnected} sellerId={activeSellerId} />
         </div>
       )}
     </div>
