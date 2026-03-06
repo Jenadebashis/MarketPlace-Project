@@ -11,6 +11,8 @@ export default function chatReducer(state = initialState, action) {
       return { ...state, isConnected: action.payload };
     case 'chat/addMessage':
       return { ...state, messages: [...state.messages, action.payload] };
+    case 'chat/setMessages':
+      return {...state, messages: action.payload};
     case 'chat/clearMessages':
       return { ...state, messages: [] };
     default:

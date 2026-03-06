@@ -15,7 +15,7 @@ const ChatPage = () => {
   const dispatch = useDispatch();
   const location = useLocation();
 
-  console.log('the value of messages and currentUserId coming here is: ', { messages, user });
+  console.log('the value of messages and currentUserId coming here is: ', { messages, user, conversations });
 
   // Accessing the data you sent
   const { sellerId } = location.state || {};
@@ -28,7 +28,10 @@ const ChatPage = () => {
     setSelectedChat(chat);
     try {
       const history = await apiCall(`/api/chat/history/${chat.roomId}`, 'GET');
-      dispatch({ type: 'chat/setMessages', payload: history });
+      const hv = [...history];
+      console.log('the type of history is: ', typeof(history), typeof(hv));
+      console.log('the history we are getting is: ', {history, hv});
+      dispatch({ type: 'chat/setMessages', payload: hv });
       dispatch({ type: 'socket/join_room', payload: chat.roomId });
     } catch (err) { console.error("History error", err); }
   };
