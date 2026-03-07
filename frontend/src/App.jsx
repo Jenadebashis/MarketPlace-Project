@@ -159,6 +159,7 @@ function App() {
               <Route path="/seller-profile/:id" element={<UserDetails />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/messages" element={<ChatPage />} />
+              <Route path="/messages/:roomId" element={<ChatPage />} />
             </Route>
 
             <Route path="*" element={

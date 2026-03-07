@@ -3,6 +3,7 @@ import { User, Package, Mail, ShieldCheck, AlertCircle, MessageCircle } from 'lu
 import { useParams, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { apiCall } from '../api';
 import { useSelector } from 'react-redux';
+import generateRoomId from '../utils/generateId';
 
 const UserDetails = () => {
   const [data, setData] = useState(null);
@@ -37,13 +38,16 @@ const UserDetails = () => {
   }, [id]);
 
   const handleStartChat = () => {
-    if (!data || !data.userDetails) return; // Prevent crashes if data hasn't loaded
+    if (!data || !data.userDetails) return;
 
-    navigate('/messages', {
+    const currentUserId = user?.id;
+    const sellerId = id;
+    const roomId = generateRoomId(currentUserId, sellerId);
+
+    navigate(`/message/${roomId}`, {
       state: {
-        sellerId: id,
+        sellerId: sellerId,
         sellerName: data.userDetails.name,
-        // Use optional chaining for products
         product: data.products?.[0]
       }
     });
