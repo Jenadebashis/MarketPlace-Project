@@ -65,15 +65,16 @@ const ChatPage = () => {
       if (chatFromInbox) {
         handleLoadChatData(chatFromInbox);
       }
-      else if (location.state?.sellerId) {
-        if (selectedChat?.roomId === roomId) return;
-        setSelectedChat({
-          roomId: roomId,
-          otherPartyName: location.state.sellerName || "New Message",
-          otherPartyId: location.state.sellerId,
-          product: location.state.product || { image: "", name: "Inquiry" }
-        });
-      }
+    }
+
+    if (location.state?.sellerId) {
+      if (selectedChat?.roomId === roomId) return;
+      setSelectedChat({
+        roomId: roomId,
+        otherPartyName: location.state.sellerName || "New Message",
+        otherPartyId: location.state.sellerId,
+        product: location.state.product || { image: "", name: "Inquiry" }
+      });
     }
   }, [roomId, conversations, handleLoadChatData, location.state, selectedChat?.roomId]);
 
@@ -121,7 +122,7 @@ const ChatPage = () => {
                   </div>
                   <p className="text-sm text-gray-500 truncate italic">Re: {chat.product?.name || 'Item'}</p>
                   <div className="flex justify-between items-center mt-1">
-                    <p className="text-xs text-gray-400 truncate max-w-[180px]">{chat.lastMessage}</p>
+                    <p className="text-xs text-gray-400 truncate max-w-45">{chat.lastMessage}</p>
                     {chat.unreadCount > 0 && (
                       <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
                         {chat.unreadCount}
@@ -146,7 +147,7 @@ const ChatPage = () => {
             </button>
             <div className="flex items-center gap-3">
               <img
-                src={selectedChat.product?.image || imgSrc}
+                src={imgSrc}
                 className="w-10 h-10 rounded-full object-cover border border-gray-200"
                 alt="header-avatar"
               />

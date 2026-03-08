@@ -130,6 +130,16 @@ function App() {
       }
     };
     fetchCart();
+
+    const fetchInbox = async () => {
+      try {
+        const data = await apiCall('/api/chat/inbox', 'GET');
+        dispatch({ type: 'inbox/setConversations', payload: data });
+      } catch (err) {
+        console.error("Inbox fetch failed:", err);
+      }
+    };
+    fetchInbox();
   }, [dispatch]);
 
 

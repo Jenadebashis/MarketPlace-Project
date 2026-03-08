@@ -44,7 +44,7 @@ const UserDetails = () => {
     const sellerId = id;
     const roomId = generateRoomId(currentUserId, sellerId);
 
-    navigate(`/message/${roomId}`, {
+    navigate(`/messages/${roomId}`, {
       state: {
         sellerId: sellerId,
         sellerName: data.userDetails.name,

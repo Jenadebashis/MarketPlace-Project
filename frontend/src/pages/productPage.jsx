@@ -80,7 +80,7 @@ const ProductPage = () => {
                 </div>
 
                 {/* Details */}
-                <div className="p-6 flex flex-col flex-grow">
+                <div className="p-6 flex flex-col grow">
                   <div className="flex flex-col h-full">
                     <h3 className="text-lg font-bold text-gray-900 leading-tight group-hover:text-emerald-600 transition">
                       {product.name}
