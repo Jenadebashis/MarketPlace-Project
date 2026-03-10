@@ -67,6 +67,29 @@ export default function inboxReducer(state = initialState, action) {
         loading: false
       };
 
+    case 'inbox/syncConversation': {
+      const newConv = action.payload;
+      const exists = state.conversations.find(c => c.roomId === newConv.roomId);
+
+      let updatedList;
+      if (exists) {
+        // Update existing
+        updatedList = state.conversations.map(c =>
+          c.roomId === newConv.roomId ? { ...c, ...newConv } : c
+        );
+      } else {
+        // Add brand new conversation to the top
+        updatedList = [newConv, ...state.conversations];
+      }
+
+      return {
+        ...state,
+        conversations: updatedList.sort((a, b) =>
+          new Date(b.lastTimestamp) - new Date(a.lastTimestamp)
+        )
+      };
+    }
+
     default:
       return state;
   }

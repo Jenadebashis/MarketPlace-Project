@@ -205,7 +205,7 @@ io.on('connection', (socket) => {
           $inc: { unreadCount: 1 }
         },
         { upsert: true, new: true }
-      );
+      ).populate('productId');
 
       console.log('✅ Conversation updated');
 
@@ -213,11 +213,12 @@ io.on('connection', (socket) => {
       console.log(`Sending to ${clients ? clients.size : 0} users in room ${roomId}`);
 
       io.to(roomId).emit('receive_message', newMessage);
-      io.emit('update_unread_count', {
-        roomId,
-        newCount: updatedConversation.unreadCount
+      
+      io.emit('inbox_update', {
+        type: 'NEW_OR_UPDATE_CONVERSATION',
+        conversation: updatedConversation,
+        recipientId: Number(sellerId)
       });
-
     } catch (err) {
       console.error('❌ SERVER ERROR:', err.message);
       // Send error to frontend so you know why it failed

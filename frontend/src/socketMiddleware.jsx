@@ -1,6 +1,12 @@
 import { io } from 'socket.io-client';
+import { toast } from 'react-toastify';
+
 const socketMiddleware = () => {
   let socket = null;
+  const user = useMemo(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  }, []);
 
   return (store) => (next) => (action) => {
     switch (action.type) {
@@ -22,8 +28,21 @@ const socketMiddleware = () => {
           }, 3000);
         });
 
+        socket.on('inbox_update', (data) => {
+          // Only process if this message is meant for the logged-in user
+          if (data.recipientId === user?.id) {
+            dispatch({
+              type: 'inbox/syncConversation',
+              payload: data.conversation
+            });
+
+            // Optional: Show a toast notification
+            toast.info(`New message from ${data.conversation.otherPartyName}`);
+          }
+        });
+
         socket.on('receive_message', (msg) => {
-          console.log('the message coming here is: ', {msg});
+          console.log('the message coming here is: ', { msg });
           store.dispatch({ type: 'chat/addMessage', payload: msg });
           store.dispatch({
             type: 'inbox/updateLastMessage',

@@ -14,6 +14,8 @@ import { apiCall } from './api';
 import NotificationToast from './utils/Notification';
 import ChatPage from './pages/chatPage';
 import { MailIcon } from 'lucide-react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // --- STYLISH NAVBAR COMPONENT ---
 const Navbar = () => {
@@ -155,6 +157,7 @@ function App() {
       <div className="min-h-screen w-full bg-slate-50 font-sans text-gray-900">
         <Navbar />
         <NotificationToast />
+        <ToastContainer position="top-right" autoClose={3000} />
 
         <main className="container mx-auto">
           <Routes>
