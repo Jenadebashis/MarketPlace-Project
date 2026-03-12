@@ -9,23 +9,16 @@ import { productSchema } from "../utils/validation.js";
 
 router.post('/', protect, verifySeller, upload.single('image'), async (req, res) => {
   try {
-    // 1. Prepare the data for validation
-    // We parse specifications first because Zod expects an object, not a string.
     const rawData = {
       ...req.body,
       specifications: req.body.specifications ? JSON.parse(req.body.specifications) : undefined
     };
-    console.log('the specifications coming here is: ', req.body.specifications, rawData.specifications);
 
-    // 2. Validate with Zod
     const validatedData = productSchema.parse(rawData);
-
-    // 3. Handle File Logic
     const imageUrl = req.file ? req.file.path : null;
 
-    // 4. Save to Database using validatedData
     const product = new Product({
-      ...validatedData, // Contains name, description, price, category, specifications
+      ...validatedData,
       image: imageUrl,
       vendorId: req.vendorId
     });
@@ -34,19 +27,18 @@ router.post('/', protect, verifySeller, upload.single('image'), async (req, res)
     return res.status(201).json(savedProject);
 
   } catch (err) {
-    // 5. Handle Zod Errors specifically
     if (err.name === "ZodError") {
       return res.status(400).json({
         message: "Validation failed",
         errors: err.flatten().fieldErrors
       });
     }
-
     console.error(err);
     return res.status(500).json({ message: "Server Error" });
   }
 });
 
+// GET all products with optional filters
 router.get('/', async (req, res) => {
   try {
     const { category, minPrice } = req.query;
@@ -60,22 +52,22 @@ router.get('/', async (req, res) => {
 
     const sellers = await User.findAll({
       attributes: ['id', 'name'],
-      where: {
-        id: {
-          [Op.in]: vendorIds
-        }
-      },
+      where: { id: { [Op.in]: vendorIds } },
       raw: true
     });
 
+    const enrichedProducts = products
+      .map(product => {
+        const seller = sellers.find(s => s.id === Number(product.vendorId));
 
-    const enrichedProducts = products.map(product => {
-      const seller = sellers.find(s => s.id === Number(product.vendorId));
-      return {
-        ...product._doc,
-        sellerName: seller ? seller.name : 'Unknown Seller'
-      };
-    });
+        if (!seller) return null;
+
+        return {
+          ...product._doc,
+          sellerName: seller.name
+        };
+      })
+      .filter(product => product !== null); 
 
     res.json(enrichedProducts);
   } catch (error) {
@@ -83,15 +75,15 @@ router.get('/', async (req, res) => {
   }
 });
 
-
+// Search route
 router.get('/search', async (req, res) => {
   try {
     const { name, category, price, minPrice, maxPrice, page = 1, limit = 10, ...extra } = req.query;
-
     const query = {};
 
     if (name) query.name = { $regex: name, $options: 'i' };
     if (category) query.category = category;
+
     if (minPrice || maxPrice || price) {
       if (price) {
         query.price = Number(price);
@@ -110,27 +102,26 @@ router.get('/search', async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
-
     const vendorIds = [...new Set(products.map(p => Number(p.vendorId)))];
 
     const sellers = await User.findAll({
       attributes: ['id', 'name'],
-      where: {
-        id: {
-          [Op.in]: vendorIds
-        }
-      },
+      where: { id: { [Op.in]: vendorIds } },
       raw: true
     });
 
+    const enrichedProducts = products
+      .map(product => {
+        const seller = sellers.find(s => s.id === Number(product.vendorId));
 
-    const enrichedProducts = products.map(product => {
-      const seller = sellers.find(s => s.id === Number(product.vendorId));
-      return {
-        ...product._doc,
-        sellerName: seller ? seller.name : 'Unknown Seller'
-      };
-    });
+        if (!seller) return null;
+
+        return {
+          ...product._doc,
+          sellerName: seller.name
+        };
+      })
+      .filter(product => product !== null);
 
     res.json(enrichedProducts);
 
