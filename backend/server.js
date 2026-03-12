@@ -72,6 +72,14 @@ mongoose.connect(process.env.MONGODB_CONNECTION)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.log("❌ MongoDB Connection Error:", err));
 
+sequelize.sync({ alter: true }) 
+  .then(() => {
+    console.log("✅ Postgres Tables Synced (User, etc.)");
+  })
+  .catch((err) => {
+    console.error("❌ Postgres Sync Error:", err);
+  });
+
 app.use('/api/product', productRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/cart', cartRoutes);

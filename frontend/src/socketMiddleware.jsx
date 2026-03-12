@@ -1,14 +1,16 @@
 import { io } from 'socket.io-client';
 import { toast } from 'react-toastify';
+import { useMemo } from 'react';
 
 const socketMiddleware = () => {
   let socket = null;
-  const user = useMemo(() => {
+  const getUser = () => {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
-  }, []);
+  };
 
   return (store) => (next) => (action) => {
+    const user = getUser();
     switch (action.type) {
       case 'socket/connect':
         if (socket) socket.disconnect();
