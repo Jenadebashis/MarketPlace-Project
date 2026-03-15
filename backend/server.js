@@ -72,7 +72,7 @@ mongoose.connect(process.env.MONGODB_CONNECTION)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.log("❌ MongoDB Connection Error:", err));
 
-sequelize.sync({ alter: true }) 
+sequelize.sync({ alter: true })
   .then(() => {
     console.log("✅ Postgres Tables Synced (User, etc.)");
   })
@@ -185,23 +185,16 @@ io.on('connection', (socket) => {
     console.log(`User joined room: ${roomId}`);
   });
 
-  // 2. Message is sent ONLY to that room
   socket.on('send_message', async (data) => {
     const { roomId, text, productId, sellerId } = data;
-    console.log('--- Debugging Message Error ---');
-    console.log('User ID from Socket:', socket.user.id);
-    console.log('Type of User ID:', typeof socket.user.id);
 
     try {
-      // 1. Save the individual message
       const newMessage = await Message.create({
         roomId,
         senderId: socket.user.id,
         text
       });
-      console.log('✅ Message saved to DB');
 
-      // 2. Update (or Create) the Conversation for the Inbox
       const updatedConversation = await Conversation.findOneAndUpdate(
         { roomId },
         {
@@ -209,28 +202,29 @@ io.on('connection', (socket) => {
           lastTimestamp: new Date(),
           $addToSet: { participants: { $each: [socket.user.id, Number(sellerId)] } },
           productId: productId,
-          // 💡 This is the key: Increment the count by 1 for every new message
-          $inc: { unreadCount: 1 }
+          $inc: { unreadCount: 1 } // Increment for the recipient
         },
         { upsert: true, new: true }
       ).populate('productId');
 
-      console.log('✅ Conversation updated');
-
-      const clients = io.sockets.adapter.rooms.get(roomId);
-      console.log(`Sending to ${clients ? clients.size : 0} users in room ${roomId}`);
-
       io.to(roomId).emit('receive_message', newMessage);
-      
-      io.emit('inbox_update', {
-        type: 'NEW_OR_UPDATE_CONVERSATION',
-        conversation: updatedConversation,
-        recipientId: Number(sellerId)
+
+      updatedConversation.participants.forEach((participantId) => {
+
+        if (participantId.toString() === socket.user.id.toString()) return;
+
+        io.to(`user_${participantId}`).emit('inbox_update', {
+          type: 'NEW_OR_UPDATE_CONVERSATION',
+          conversation: updatedConversation,
+          unreadCount: updatedConversation.unreadCount
+        });
       });
+
+      console.log(`✅ Processed message for room ${roomId}`);
+
     } catch (err) {
       console.error('❌ SERVER ERROR:', err.message);
-      // Send error to frontend so you know why it failed
-      socket.emit('error_message', { error: err.message });
+      socket.emit('error_message', { error: 'Failed to send message' });
     }
   });
 
