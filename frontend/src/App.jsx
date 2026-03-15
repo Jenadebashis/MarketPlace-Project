@@ -23,6 +23,7 @@ const Navbar = () => {
   const cart = useSelector((state) => state.demo.cart);
   const { conversations } = useSelector((state) => state.inbox);
   const [itemCount, setItemCount] = useState(0);
+  const dispatch = useDispatch();
 
   const totalUnread = conversations.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0);
 
@@ -39,6 +40,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    dispatch({ type: 'SET_IS_AUTHENTICATED', payload: false });
     window.location.href = '/login';
   };
 
@@ -107,20 +109,12 @@ const Navbar = () => {
 };
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // const { messages, isConnected } = useSelector((state) => state.chat);
+  const { isAuthenticated } = useSelector((state) => state.demo);
   // const [text, setText] = useState('');
   const dispatch = useDispatch();
 
   useCartSync(isAuthenticated);
   useEffect(() => {
-    // Check if a user token exists in local storage
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsAuthenticated(true);
-    }
-
-    // Hydrate the Redux store from the Database on load
     const fetchCart = async () => {
       try {
         const res = await apiCall('/api/cart', 'GET');

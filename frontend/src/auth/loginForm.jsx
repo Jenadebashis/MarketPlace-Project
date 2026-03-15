@@ -22,10 +22,11 @@ const LoginForm = () => {
 
       console.log('the user details coming here is: ', {response});
 
-      dispatch({ type: 'SET_USER_DETAILS', payload: user })
+      dispatch({ type: 'SET_USER_DETAILS', payload: user });
+      dispatch({ type: 'SET_IS_AUTHENTICATED', payload: true });
 
       alert("Login Successful!");
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       console.error(error);
       alert(error.response?.data?.message || "Invalid credentials");

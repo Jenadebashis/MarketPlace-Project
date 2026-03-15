@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registrationSchema } from '../utils/validation';
@@ -8,12 +9,14 @@ const RegisterForm = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(registrationSchema)
   });
+  const navigate = useNavigate();
 
   const onSubmit = async (data) => {
     try {
       // Sending to your backend register route
       const response = await apiCall('/api/auth/register', 'POST', data);
       alert("Registration Successful! Please login.");
+      navigate('/login');
     } catch (error) {
       alert(error.response?.data?.message || "Registration failed");
     }
