@@ -1,6 +1,7 @@
 import express from 'express';
 import { Message, Conversation } from '../models/Message.js';
 import { protect } from '../middleware/auth.js';
+import User from '../config/User.js';
 
 const router = express.Router();
 
@@ -17,14 +18,27 @@ router.get('/inbox', protect, async (req, res) => {
       .lean()
       .sort({ lastTimestamp: -1 });
 
+    const vendorIds = [...new Set(
+      conversations.flatMap(conv =>
+        conv.participants.map(p => Number(p)).filter(id => id !== currentUserId)
+      )
+    )];
+
+    const sellers = await User.findAll({
+      attributes: ['id', 'name'],
+      where: { id: { [Op.in]: vendorIds } },
+      raw: true
+    });
+
+    const sellerMap = Object.fromEntries(sellers.map(s => [s.id, s.name]));
+
     const formattedInbox = conversations.map(conv => {
-      // Find the ID that is NOT the current user
       const otherPartyId = conv.participants.find(p => Number(p) !== currentUserId);
 
       return {
         roomId: conv.roomId,
-        otherPartyId: otherPartyId, // Useful for the frontend .find logic
-        otherPartyName: `User ${otherPartyId}`, // Temporary until you fetch user names
+        otherPartyId,
+        otherPartyName: sellerMap[otherPartyId] || `User - ${otherPartyId}`,
         lastMessage: conv.lastMessage,
         timestamp: conv.lastTimestamp,
         product: conv.productId || { name: "Product", image: "" }

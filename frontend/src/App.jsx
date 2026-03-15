@@ -142,7 +142,7 @@ function App() {
       }
     };
     fetchInbox();
-  }, [dispatch]);
+  }, []);
 
 
   useEffect(() => {
@@ -150,7 +150,7 @@ function App() {
     dispatch({ type: 'socket/connect', payload: { token } });
 
     return () => dispatch({ type: 'socket/disconnect' });
-  }, [dispatch]);
+  }, []);
 
   return (
     <Router>
