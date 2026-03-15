@@ -40,6 +40,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     dispatch({ type: 'SET_IS_AUTHENTICATED', payload: false });
     window.location.href = '/login';
   };
@@ -109,7 +110,7 @@ const Navbar = () => {
 };
 
 function App() {
-  const { isAuthenticated } = useSelector((state) => state.demo);
+  const { isAuthenticated, user } = useSelector((state) => state.demo);
   // const [text, setText] = useState('');
   const dispatch = useDispatch();
 
@@ -140,11 +141,19 @@ function App() {
 
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    dispatch({ type: 'socket/connect', payload: { token } });
+    // Now we can grab the token directly from the user object in Redux
+    const token = user?.token || localStorage.getItem("token");
 
-    return () => dispatch({ type: 'socket/disconnect' });
-  }, []);
+    console.log("🔍 Socket Trigger Check:", {
+      isAuthenticated,
+      tokenFound: !!token
+    });
+
+    if (isAuthenticated && token) {
+      console.log("🚀 Success! Connecting with token.");
+      dispatch({ type: 'socket/connect', payload: { token } });
+    }
+  }, [isAuthenticated, user, dispatch]);
 
   return (
     <Router>

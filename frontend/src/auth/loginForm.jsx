@@ -17,12 +17,13 @@ const LoginForm = () => {
       const { token, user } = response; // Assuming your backend returns { token: "..." }
 
       // 2. Save to localStorage for the Interceptor
+      localStorage.clear(); // Clear any zombie data  
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
       console.log('the user details coming here is: ', {response});
 
-      dispatch({ type: 'SET_USER_DETAILS', payload: user });
+      dispatch({ type: 'SET_USER_DETAILS', payload: { ...user, token } });
       dispatch({ type: 'SET_IS_AUTHENTICATED', payload: true });
 
       alert("Login Successful!");
