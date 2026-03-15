@@ -1,4 +1,5 @@
 import express from 'express';
+import { Op } from "sequelize";
 import { Message, Conversation } from '../models/Message.js';
 import { protect } from '../middleware/auth.js';
 import User from '../config/User.js';
