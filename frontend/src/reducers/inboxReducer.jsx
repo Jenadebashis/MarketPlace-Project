@@ -69,24 +69,39 @@ export default function inboxReducer(state = initialState, action) {
 
     case 'inbox/syncConversation': {
       const newConv = action.payload;
+
+      console.log('📥 REDUCER: syncConversation triggered');
+      console.log('📦 Payload received:', newConv);
+
       const exists = state.conversations.find(c => c.roomId === newConv.roomId);
 
       let updatedList;
       if (exists) {
+        console.log(`🔄 Updating existing conversation: ${newConv.roomId}`);
         // Update existing
         updatedList = state.conversations.map(c =>
           c.roomId === newConv.roomId ? { ...c, ...newConv } : c
         );
       } else {
+        console.log(`✨ Adding BRAND NEW conversation to list: ${newConv.roomId}`);
         // Add brand new conversation to the top
         updatedList = [newConv, ...state.conversations];
       }
 
+      // Final step: Sort and return
+      const sortedList = updatedList.sort((a, b) =>
+        new Date(b.lastTimestamp) - new Date(a.lastTimestamp)
+      );
+
+      console.log('📊 Stats:', {
+        totalConversations: sortedList.length,
+        topConversationRoomId: sortedList[0]?.roomId,
+        lastMessage: sortedList[0]?.lastMessage
+      });
+
       return {
         ...state,
-        conversations: updatedList.sort((a, b) =>
-          new Date(b.lastTimestamp) - new Date(a.lastTimestamp)
-        )
+        conversations: sortedList
       };
     }
 

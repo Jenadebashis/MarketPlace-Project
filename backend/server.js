@@ -204,6 +204,13 @@ io.on('connection', (socket) => {
     console.log(`\n--- 💬 MESSAGE RECEIVED ---`);
     console.log(`From: ${socket.user.id} | Room: ${roomId}`);
     console.log(`Content: "${text}"`);
+    const seller = await User.findByPk(sellerId, {
+      attributes: ['id', 'name'],
+      raw: true
+    });
+
+    // Access the name directly
+    const sellerName = seller ? seller.name : 'Unknown Seller';
 
     try {
       // 1. Save Message to DB
@@ -243,7 +250,8 @@ io.on('connection', (socket) => {
         io.to(`user_${participantId}`).emit('inbox_update', {
           type: 'NEW_OR_UPDATE_CONVERSATION',
           conversation: updatedConversation,
-          unreadCount: updatedConversation.unreadCount
+          unreadCount: updatedConversation.unreadCount,
+          otherPartyName: sellerName
         });
         console.log(`📬 Sent inbox_update to user_${participantId}`);
       });

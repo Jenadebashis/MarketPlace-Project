@@ -31,16 +31,15 @@ const socketMiddleware = () => {
         });
 
         socket.on('inbox_update', (data) => {
+          console.log('the data coming here is: ', { data });
           // Only process if this message is meant for the logged-in user
-          if (data.recipientId === user?.id) {
-            dispatch({
-              type: 'inbox/syncConversation',
-              payload: data.conversation
-            });
+          store.dispatch({
+            type: 'inbox/syncConversation',
+            payload: data.conversation
+          });
 
-            // Optional: Show a toast notification
-            toast.info(`New message from ${data.conversation.otherPartyName}`);
-          }
+          // Optional: Show a toast notification
+          toast.info(`New message from ${data.otherPartyName}`);
         });
 
         socket.on('receive_message', (msg) => {
