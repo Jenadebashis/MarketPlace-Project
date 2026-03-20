@@ -154,47 +154,67 @@ io.use((socket, next) => {
     next();
   });
 });
-
 io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.user.id}`);
+  // 🔌 Connection Event
+  console.log(`\n--- 🔌 NEW CONNECTION ---`);
+  console.log(`Socket ID: ${socket.id}`);
+  console.log(`User ID: ${socket.user.id}`);
 
   const buyerId = socket.user.id;
   socket.join(`user_${buyerId}`);
+  console.log(`📢 User ${buyerId} joined their private notification room: user_${buyerId}`);
 
+  // 🛒 Add to Cart Event
   socket.on('add_to_cart', (product) => {
-    // 1. Identify the seller from the incoming data
-    const sellerId = product.vendorId;
+    console.log(`\n--- 🛒 ADD TO CART EVENT ---`);
+    console.log(`Buyer: ${buyerId}`);
+    console.log(`Product: ${product.name} (ID: ${product.id || 'N/A'})`);
 
-    // 2. Send the notification to the SELLER'S room
+    const sellerId = product.vendorId;
+    console.log(`Target Seller ID: ${sellerId}`);
+
+    // Notify the Seller
     io.to(`user_${sellerId}`).emit('notification', {
       type: 'NEW_SALE_INTEREST',
       message: `A customer just added ${product.name} to their cart!`,
       buyerId: buyerId,
       timestamp: new Date()
     });
+    console.log(`✉️ Notification sent to seller room: user_${sellerId}`);
 
-    // Optional: Still notify the buyer that it worked
+    // Notify the Buyer
     socket.emit('notification', {
       type: 'SUCCESS',
       message: 'Added to your cart'
     });
+    console.log(`✅ Success confirmation sent back to buyer`);
   });
 
+  // 🚪 Join Chat Event
   socket.on('join_chat', ({ roomId }) => {
     socket.join(roomId);
-    console.log(`User joined room: ${roomId}`);
+    console.log(`\n--- 🚪 ROOM JOIN ---`);
+    console.log(`User ${socket.user.id} entered room: ${roomId}`);
   });
 
+  // 💬 Send Message Event
   socket.on('send_message', async (data) => {
     const { roomId, text, productId, sellerId } = data;
 
+    console.log(`\n--- 💬 MESSAGE RECEIVED ---`);
+    console.log(`From: ${socket.user.id} | Room: ${roomId}`);
+    console.log(`Content: "${text}"`);
+
     try {
+      // 1. Save Message to DB
       const newMessage = await Message.create({
         roomId,
         senderId: socket.user.id,
         text
       });
+      console.log(`💾 Message saved to database. ID: ${newMessage._id}`);
 
+      // 2. Update Conversation Metadata
       const updatedConversation = await Conversation.findOneAndUpdate(
         { roomId },
         {
@@ -202,33 +222,46 @@ io.on('connection', (socket) => {
           lastTimestamp: new Date(),
           $addToSet: { participants: { $each: [socket.user.id, Number(sellerId)] } },
           productId: productId,
-          $inc: { unreadCount: 1 } // Increment for the recipient
+          $inc: { unreadCount: 1 }
         },
         { upsert: true, new: true }
       ).populate('productId');
 
+      console.log(`🔄 Conversation ${roomId} updated/upserted in DB`);
+
+      // 3. Broadcast to the Chat Room
       io.to(roomId).emit('receive_message', newMessage);
+      console.log(`📡 Message broadcasted to all users in room: ${roomId}`);
 
+      // 4. Update Inboxes for Participants
       updatedConversation.participants.forEach((participantId) => {
-
-        if (participantId.toString() === socket.user.id.toString()) return;
+        if (participantId.toString() === socket.user.id.toString()) {
+          console.log(`⏭️ Skipping inbox update for sender (${participantId})`);
+          return;
+        }
 
         io.to(`user_${participantId}`).emit('inbox_update', {
           type: 'NEW_OR_UPDATE_CONVERSATION',
           conversation: updatedConversation,
           unreadCount: updatedConversation.unreadCount
         });
+        console.log(`📬 Sent inbox_update to user_${participantId}`);
       });
 
-      console.log(`✅ Processed message for room ${roomId}`);
+      console.log(`✅ Finished processing message for room ${roomId}`);
 
     } catch (err) {
-      console.error('❌ SERVER ERROR:', err.message);
+      console.error(`\n❌ SERVER ERROR in 'send_message':`);
+      console.error(err.stack); // stack trace is better for debugging
       socket.emit('error_message', { error: 'Failed to send message' });
     }
   });
 
-  socket.on('disconnect', () => console.log('User disconnected'));
+  // 📉 Disconnect Event
+  socket.on('disconnect', () => {
+    console.log(`\n--- 📉 DISCONNECTED ---`);
+    console.log(`User ID: ${socket.user.id} | Socket: ${socket.id}`);
+  });
 });
 
 // --- 2. GLOBAL ERROR HANDLER (MUST BE AFTER ROUTES) ---
