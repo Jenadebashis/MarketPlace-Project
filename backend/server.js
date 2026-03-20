@@ -204,7 +204,7 @@ io.on('connection', (socket) => {
     console.log(`\n--- 💬 MESSAGE RECEIVED ---`);
     console.log(`From: ${socket.user.id} | Room: ${roomId}`);
     console.log(`Content: "${text}"`);
-    const seller = await User.findByPk(sellerId, {
+    const seller = await User.findByPk(buyerId, {
       attributes: ['id', 'name'],
       raw: true
     });
