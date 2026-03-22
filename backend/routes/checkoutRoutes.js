@@ -1,11 +1,12 @@
 import express from 'express';
 import Stripe from 'stripe';
 import Cart from '../models/Cart.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-router.post('/create-session', async (req, res) => {
+router.post('/create-session', protect, async (req, res) => {
   try {
     const { userId } = req.user.id;
 
