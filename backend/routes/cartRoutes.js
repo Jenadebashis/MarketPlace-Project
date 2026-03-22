@@ -33,4 +33,23 @@ router.post('/sync', protect, async (req, res) => {
   }
 });
 
+router.delete('/clear', protect, async (req, res) => {
+  try {
+    const cart = await Cart.findOneAndUpdate(
+      { userId: req.user.id },
+      { $set: { items: [] } }, // Wipes the items array
+      { new: true }
+    );
+
+    res.json({ 
+      success: true, 
+      message: "Cart emptied successfully", 
+      items: [] 
+    });
+  } catch (err) {
+    console.error("Clear Cart Error:", err.message);
+    res.status(500).send("Could not clear cart");
+  }
+});
+
 export default router;

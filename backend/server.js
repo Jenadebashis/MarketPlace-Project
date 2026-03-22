@@ -12,6 +12,8 @@ import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import checkoutRoutes from './routes/checkoutRoutes.js';
+import webhookRouter from './routes/webhook.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -20,7 +22,6 @@ import { registrationSchema } from './utils/validation.js';
 import { Conversation, Message } from './models/Message.js';
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-// 1. UTILITY: Catch-all for async errors (Replaces try/catch)
 const catchAsync = (fn) => (req, res, next) => {
   fn(req, res, next).catch(next);
 };
@@ -32,6 +33,10 @@ if (!fs.existsSync(uploadDir)) {
 
 const app = express();
 const httpServer = createServer(app); // 3. Wrap express app
+
+app.use('/api/checkout', checkoutRoutes);
+app.use('/api/webhook', webhookRouter);
+
 app.use(express.json());
 const allowedOrigins = [
   'https://marketplacedj.netlify.app',

@@ -176,6 +176,7 @@ function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/messages" element={<ChatPage />} />
               <Route path="/messages/:roomId" element={<ChatPage />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
             </Route>
 
             <Route path="*" element={

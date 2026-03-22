@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
+import CheckoutButton from '../components/CheckoutButton';
 
 const Checkout = () => {
   const cart = useSelector((state) => state.demo.cart);
@@ -30,12 +31,12 @@ const Checkout = () => {
                   <h3 className="font-bold text-gray-900">{item.name}</h3>
                   <p className="text-sm text-gray-400">{item.category}</p>
                   <div className="flex items-center gap-4 mt-2">
-                    <button 
+                    <button
                       onClick={() => dispatch({ type: 'REMOVE_FROM_CART', payload: item._id })}
                       className="text-gray-400 hover:text-red-500 font-bold"
                     > − </button>
                     <span className="font-medium">{item.qty}</span>
-                    <button 
+                    <button
                       onClick={() => dispatch({ type: 'ADD_TO_CART', payload: item })}
                       className="text-gray-400 hover:text-emerald-600 font-bold"
                     > + </button>
@@ -66,12 +67,9 @@ const Checkout = () => {
               <span className="text-2xl font-black text-emerald-600">${total.toFixed(2)}</span>
             </div>
           </div>
-          <button 
-            disabled={cart.length === 0}
-            className="w-full mt-8 bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition disabled:bg-gray-200"
-          >
-            Secure Checkout
-          </button>
+          <CheckoutButton
+            cart={cart}
+          />
         </div>
       </div>
     </div>
