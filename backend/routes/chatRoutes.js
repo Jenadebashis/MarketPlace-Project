@@ -42,7 +42,8 @@ router.get('/inbox', protect, async (req, res) => {
         otherPartyName: sellerMap[otherPartyId] || `User - ${otherPartyId}`,
         lastMessage: conv.lastMessage,
         timestamp: conv.lastTimestamp,
-        product: conv.productId || { name: "Product", image: "" }
+        product: conv.productId || { name: "Product", image: "" },
+        unreadCount: conv.unreadCount
       };
     });
 

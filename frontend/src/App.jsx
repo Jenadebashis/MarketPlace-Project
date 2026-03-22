@@ -116,29 +116,6 @@ function App() {
   const dispatch = useDispatch();
 
   useCartSync(isAuthenticated);
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const res = await apiCall('/api/cart', 'GET');
-        // Update Redux with the items found in MongoDB
-        console.log('the res coming here is: ', { res });
-        dispatch({ type: 'SET_CART', payload: res });
-      } catch (err) {
-        console.error("Could not fetch initial cart", err);
-      }
-    };
-    fetchCart();
-
-    const fetchInbox = async () => {
-      try {
-        const data = await apiCall('/api/chat/inbox', 'GET');
-        dispatch({ type: 'inbox/setConversations', payload: data });
-      } catch (err) {
-        console.error("Inbox fetch failed:", err);
-      }
-    };
-    fetchInbox();
-  }, []);
 
 
   useEffect(() => {
@@ -153,6 +130,27 @@ function App() {
     if (isAuthenticated && token) {
       console.log("🚀 Success! Connecting with token.");
       dispatch({ type: 'socket/connect', payload: { token } });
+      const fetchCart = async () => {
+        try {
+          const res = await apiCall('/api/cart', 'GET');
+          // Update Redux with the items found in MongoDB
+          console.log('the res coming here is: ', { res });
+          dispatch({ type: 'SET_CART', payload: res });
+        } catch (err) {
+          console.error("Could not fetch initial cart", err);
+        }
+      };
+      fetchCart();
+
+      const fetchInbox = async () => {
+        try {
+          const data = await apiCall('/api/chat/inbox', 'GET');
+          dispatch({ type: 'inbox/setConversations', payload: data });
+        } catch (err) {
+          console.error("Inbox fetch failed:", err);
+        }
+      };
+      fetchInbox();
     }
   }, [isAuthenticated, user, dispatch]);
 
