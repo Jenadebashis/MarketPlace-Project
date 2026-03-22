@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { CheckCircle } from 'lucide-react';
+import { apiCall } from '../api';
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -15,7 +16,7 @@ const PaymentSuccess = () => {
         dispatch({ type: 'CLEAR_CART' });
 
         try {
-          await apiCall('/cart/clear', 'DELETE');
+          await apiCall('/api/cart/clear', 'DELETE');
           console.log("Database cart cleared.");
         } catch (err) {
           console.error("Failed to clear DB cart:", err);

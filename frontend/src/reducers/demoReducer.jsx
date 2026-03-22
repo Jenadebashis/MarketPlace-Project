@@ -47,6 +47,13 @@ export default function demoReducer(state = initialState, action) {
         cart: Array.isArray(action.payload) ? action.payload : []
       };
 
+    case 'CLEAR_CART':
+      return {
+        ...state,
+        cart: []
+      };
+
+
     case 'SET_USER_DETAILS': {
       console.log('SET USER DETAILS CALLED WITH: ', action.payload);
       return {

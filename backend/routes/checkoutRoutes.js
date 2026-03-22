@@ -8,8 +8,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 router.post('/create-session', protect, async (req, res) => {
   try {
-    // BUG FIX: Changed from const { userId } = req.user.id;
-    // req.user.id is likely a string/ObjectId, not an object containing userId.
     const userId = req.user.id;
 
     console.log(`[Checkout] Initiating session for User: ${userId}`);
@@ -56,7 +54,6 @@ router.post('/create-session', protect, async (req, res) => {
     res.status(200).json({ url: session.url });
 
   } catch (error) {
-    // Enhanced error logging to show the full stack trace in development
     console.error("Secure Checkout Error:", error);
     res.status(500).json({
       success: false,
