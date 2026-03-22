@@ -16,6 +16,7 @@ import ChatPage from './pages/chatPage';
 import { MailIcon } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import PaymentSuccess from './components/paymentSuccess';
 
 // --- STYLISH NAVBAR COMPONENT ---
 const Navbar = () => {

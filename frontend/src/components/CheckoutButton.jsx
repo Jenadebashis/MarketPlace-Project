@@ -9,7 +9,7 @@ const CheckoutButton = ({ cart }) => {
     
     setLoading(true);
     try {
-      const data = await apiCall('/checkout/create-session', 'POST');
+      const data = await apiCall('/api/checkout/create-session', 'POST');
 
       if (data.url) {
         window.location.href = data.url; 

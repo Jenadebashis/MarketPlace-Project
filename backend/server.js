@@ -34,22 +34,11 @@ if (!fs.existsSync(uploadDir)) {
 const app = express();
 const httpServer = createServer(app); // 3. Wrap express app
 
-app.use('/api/checkout', checkoutRoutes);
-app.use('/api/webhook', webhookRouter);
-
-app.use(express.json());
 const allowedOrigins = [
   'https://marketplacedj.netlify.app',
   'http://localhost:5173',                      // Your local React app
   'https://marketplace-project-xi5v.onrender.com' // Your deployed app (no trailing slash)
 ];
-
-const io = new Server(httpServer, {
-  cors: {
-    origin: allowedOrigins,
-    credentials: true
-  }
-});
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -65,6 +54,20 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Important if you are using cookies/sessions later
 }));
+
+
+app.use('/api/checkout', checkoutRoutes);
+app.use('/api/webhook', webhookRouter);
+
+app.use(express.json());
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true
+  }
+});
+
 
 // Express v5 compliant preflight handler
 app.options('/*splat', cors());
