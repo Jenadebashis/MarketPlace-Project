@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Send, Smile, Paperclip } from 'lucide-react'; // Using Lucide for consistent style
+import { apiCall } from '../api';
 
 const ChatInput = ({ roomId, isConnected, sellerId }) => {
   const [text, setText] = useState('');

@@ -16,8 +16,20 @@ const ChatPage = () => {
 
   const { conversations } = useSelector(state => state.inbox);
   const { messages, isConnected } = useSelector(state => state.chat);
+
+  const onlineStatusMap = useSelector(state => state.inbox.onlineUsers || {});
+
   const [selectedChat, setSelectedChat] = useState(null);
-  const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
+
+  const otherUserId = useMemo(() => {
+    if (selectedChat?.otherPartyId) return selectedChat.otherPartyId;
+
+    const chat = conversations.find(c => c.roomId === roomId);
+    const currentUserId = JSON.parse(localStorage.getItem('user'))?.id;
+    return chat?.participants?.find(p => p.toString() !== currentUserId?.toString());
+  }, [selectedChat, conversations, roomId]);
+
+  const isOnline = onlineStatusMap[otherUserId] === 'online';
 
   const user = useMemo(() => {
     const stored = localStorage.getItem('user');
@@ -30,7 +42,7 @@ const ChatPage = () => {
     setSelectedChat(chatObj);
     dispatch({ type: 'inbox/markAsRead', payload: chatObj.roomId });
 
-    if (chatObj.otherPartyId && isConnected) {
+    if (chatObj.otherPartyId) {
       dispatch({ type: 'socket/check_status', payload: { userId: chatObj.otherPartyId } });
     }
 
@@ -44,7 +56,7 @@ const ChatPage = () => {
     } catch (err) {
       console.error("Failed to load chat data:", err);
     }
-  }, [selectedChat?.roomId, dispatch, isConnected]);
+  }, [selectedChat?.roomId, dispatch]);
 
   useEffect(() => {
     const fetchInbox = async () => {
@@ -158,8 +170,8 @@ const ChatPage = () => {
               />
               <div>
                 <p className="font-bold text-gray-800 leading-none">{selectedChat.otherPartyName}</p>
-                <p className={`text-[10px] font-medium mt-1 ${isOtherUserOnline ? 'text-emerald-500' : 'text-gray-400'}`}>
-                  {isOtherUserOnline ? '● Online' : '○ Offline'}
+                <p className={`text-[10px] font-medium mt-1 ${isOnline ? 'text-emerald-500' : 'text-gray-400'}`}>
+                  {isOnline ? '● Online' : '○ Offline'}
                 </p>
               </div>
             </div>

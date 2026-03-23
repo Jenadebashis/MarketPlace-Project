@@ -107,6 +107,7 @@ export default function inboxReducer(state = initialState, action) {
     }
 
     case 'presence/updateStatus': {
+      console.log('the socket payload status is: ', action.payload);
       return {
         ...state,
         onlineUsers: {

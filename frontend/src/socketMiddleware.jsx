@@ -89,6 +89,7 @@ const socketMiddleware = () => {
 
       case 'socket/check_status':
         if (socket) {
+          console.log('the socket payload is: ', action.payload);
           socket.emit('check_online_status', action.payload.userId);
         }
         break;
