@@ -17,6 +17,7 @@ const ChatPage = () => {
   const { conversations } = useSelector(state => state.inbox);
   const { messages, isConnected } = useSelector(state => state.chat);
   const [selectedChat, setSelectedChat] = useState(null);
+  const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
 
   const user = useMemo(() => {
     const stored = localStorage.getItem('user');
@@ -29,6 +30,10 @@ const ChatPage = () => {
     setSelectedChat(chatObj);
     dispatch({ type: 'inbox/markAsRead', payload: chatObj.roomId });
 
+    if (chatObj.otherPartyId && isConnected) {
+      socket.emit('check_online_status', chatObj.otherPartyId);
+    }
+
     try {
       const [history] = await Promise.all([
         apiCall(`/api/chat/history/${chatObj.roomId}`, 'GET'),
@@ -39,7 +44,30 @@ const ChatPage = () => {
     } catch (err) {
       console.error("Failed to load chat data:", err);
     }
-  }, [selectedChat?.roomId, dispatch]);
+  }, [selectedChat?.roomId, dispatch, isConnected]);
+
+  useEffect(() => {
+    if (!selectedChat?.otherPartyId || !isConnected) {
+      setIsOtherUserOnline(false);
+      return;
+    }
+
+    const targetId = selectedChat.otherPartyId.toString();
+
+    const handleStatusUpdate = (data) => {
+      if (data.userId.toString() === targetId) {
+        setIsOtherUserOnline(data.status === 'online');
+      }
+    };
+
+    socket.on('status_response', handleStatusUpdate);
+    socket.on('user_presence', handleStatusUpdate);
+
+    return () => {
+      socket.off('status_response', handleStatusUpdate);
+      socket.off('user_presence', handleStatusUpdate);
+    };
+  }, [selectedChat?.otherPartyId, isConnected]);
 
   useEffect(() => {
     const fetchInbox = async () => {
@@ -153,8 +181,8 @@ const ChatPage = () => {
               />
               <div>
                 <p className="font-bold text-gray-800 leading-none">{selectedChat.otherPartyName}</p>
-                <p className="text-[10px] text-emerald-500 font-medium mt-1">
-                  {isConnected ? '● Online' : '○ Offline'}
+                <p className={`text-[10px] font-medium mt-1 ${isOtherUserOnline ? 'text-emerald-500' : 'text-gray-400'}`}>
+                  {isOtherUserOnline ? '● Online' : '○ Offline'}
                 </p>
               </div>
             </div>

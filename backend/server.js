@@ -152,6 +152,8 @@ app.post('/api/auth/login', catchAsync(async (req, res) => {
   });
 }));
 
+const onlineUsers = new Map();
+
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error("Authentication error"));
@@ -163,19 +165,26 @@ io.use((socket, next) => {
   });
 });
 io.on('connection', (socket) => {
-  // 🔌 Connection Event
+  const userId = socket.user.id;
   console.log(`\n--- 🔌 NEW CONNECTION ---`);
-  console.log(`Socket ID: ${socket.id}`);
-  console.log(`User ID: ${socket.user.id}`);
+  console.log(`User ID: ${userId} | Socket: ${socket.id}`);
 
-  const buyerId = socket.user.id;
-  socket.join(`user_${buyerId}`);
-  console.log(`📢 User ${buyerId} joined their private notification room: user_${buyerId}`);
+  if (!onlineUsers.has(userId)) {
+    onlineUsers.set(userId, new Set());
+    io.emit('user_presence', { userId, status: 'online' });
+  }
+  onlineUsers.get(userId).add(socket.id);
 
-  // 🛒 Add to Cart Event
+  socket.join(`user_${userId}`);
+
+  socket.on('check_online_status', (targetUserId) => {
+    const isOnline = onlineUsers.has(targetUserId.toString());
+    socket.emit('status_response', { userId: targetUserId, status: isOnline ? 'online' : 'offline' });
+  });
+
   socket.on('add_to_cart', (product) => {
     console.log(`\n--- 🛒 ADD TO CART EVENT ---`);
-    console.log(`Buyer: ${buyerId}`);
+    console.log(`Buyer: ${userId}`);
     console.log(`Product: ${product.name} (ID: ${product.id || 'N/A'})`);
 
     const sellerId = product.vendorId;
@@ -185,7 +194,7 @@ io.on('connection', (socket) => {
     io.to(`user_${sellerId}`).emit('notification', {
       type: 'NEW_SALE_INTEREST',
       message: `A customer just added ${product.name} to their cart!`,
-      buyerId: buyerId,
+      userId: userId,
       timestamp: new Date()
     });
     console.log(`✉️ Notification sent to seller room: user_${sellerId}`);
@@ -212,7 +221,7 @@ io.on('connection', (socket) => {
     console.log(`\n--- 💬 MESSAGE RECEIVED ---`);
     console.log(`From: ${socket.user.id} | Room: ${roomId}`);
     console.log(`Content: "${text}"`);
-    const seller = await User.findByPk(buyerId, {
+    const seller = await User.findByPk(userId, {
       attributes: ['id', 'name'],
       raw: true
     });
@@ -275,8 +284,20 @@ io.on('connection', (socket) => {
 
   // 📉 Disconnect Event
   socket.on('disconnect', () => {
-    console.log(`\n--- 📉 DISCONNECTED ---`);
-    console.log(`User ID: ${socket.user.id} | Socket: ${socket.id}`);
+    const userSockets = onlineUsers.get(userId);
+
+    if (userSockets) {
+      userSockets.delete(socket.id);
+
+      // 4. Truly offline only if NO sockets remain for this ID
+      if (userSockets.size === 0) {
+        onlineUsers.delete(userId);
+        // Broadcast to everyone that the user has left
+        io.emit('user_presence', { userId, status: 'offline' });
+        console.log(`User ${userId} is now FULLY offline`);
+      }
+    }
+    console.log(`Socket disconnected: ${socket.id}`);
   });
 });
 
