@@ -257,7 +257,7 @@ io.on('connection', (socket) => {
           lastTimestamp: new Date(),
           $addToSet: { participants: { $each: [socket.user.id, Number(sellerId)] } },
           productId: productId,
-          $inc: { unreadCount: 1 }
+          $inc: { [`unreadCounts.${sellerId}`]: 1 }
         },
         { upsert: true, new: true }
       ).populate('productId');
@@ -275,10 +275,12 @@ io.on('connection', (socket) => {
           return;
         }
 
+        const personalUnreadCount = updatedConversation.unreadCounts.get(participantId.toString()) || 0;
+
         io.to(`user_${participantId}`).emit('inbox_update', {
           type: 'NEW_OR_UPDATE_CONVERSATION',
           conversation: updatedConversation,
-          unreadCount: updatedConversation.unreadCount,
+          unreadCount: personalUnreadCount,
           otherPartyName: sellerName
         });
         console.log(`📬 Sent inbox_update to user_${participantId}`);

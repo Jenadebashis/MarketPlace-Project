@@ -15,7 +15,11 @@ const conversationSchema = new mongoose.Schema({
   productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
   lastMessage: { type: String },
   lastTimestamp: { type: Date, default: Date.now },
-  unreadCount: { type: Number, default: 0 }
+  unreadCounts: {
+    type: Map,
+    of: Number,
+    default: {}
+  }
 }, { timestamps: true });
 
 // Exporting as named constants

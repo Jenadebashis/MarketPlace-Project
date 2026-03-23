@@ -36,6 +36,8 @@ router.get('/inbox', protect, async (req, res) => {
     const formattedInbox = conversations.map(conv => {
       const otherPartyId = conv.participants.find(p => Number(p) !== currentUserId);
 
+      const myUnreadCount = (conv.unreadCounts && conv.unreadCounts[currentUserId.toString()]) || 0;
+
       return {
         roomId: conv.roomId,
         otherPartyId,
@@ -43,7 +45,7 @@ router.get('/inbox', protect, async (req, res) => {
         lastMessage: conv.lastMessage,
         timestamp: conv.lastTimestamp,
         product: conv.productId || { name: "Product", image: "" },
-        unreadCount: conv.unreadCount
+        unreadCount: myUnreadCount
       };
     });
 
@@ -69,9 +71,10 @@ router.get('/history/:roomId', protect, async (req, res) => {
 });
 
 router.put('/read/:roomId', protect, async (req, res) => {
+  const currentUserId = req.user.id;
   await Conversation.findOneAndUpdate(
     { roomId: req.params.roomId },
-    { unreadCount: 0 }
+    { $set: { [`unreadCounts.${currentUserId}`]: 0 } }
   );
   res.status(200).json({ success: true });
 });

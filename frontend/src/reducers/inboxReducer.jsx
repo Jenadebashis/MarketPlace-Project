@@ -26,16 +26,19 @@ export default function inboxReducer(state = initialState, action) {
 
     // 3. REAL-TIME UPDATE: When a socket message arrives, update the snippet
     case 'inbox/updateLastMessage': {
-      const { roomId, text, timestamp } = action.payload;
+      const { roomId, text, timestamp, senderId, currentUserId } = action.payload;
 
       const updatedConversations = state.conversations.map(conv => {
         if (conv.roomId === roomId) {
+          const isNewMessageFromOthers = senderId && Number(senderId) !== Number(currentUserId);
+
           return {
             ...conv,
             lastMessage: text,
             timestamp: timestamp,
-            // 💡 Increment the count by 1 every time a message arrives
-            unreadCount: (conv.unreadCount || 0) + 1
+            unreadCount: isNewMessageFromOthers
+              ? (conv.unreadCount || 0) + 1
+              : (conv.unreadCount || 0)
           };
         }
         return conv;
@@ -71,38 +74,24 @@ export default function inboxReducer(state = initialState, action) {
     case 'inbox/syncConversation': {
       const newConv = action.payload;
 
-      console.log('📥 REDUCER: syncConversation triggered');
-      console.log('📦 Payload received:', newConv);
-
       const exists = state.conversations.find(c => c.roomId === newConv.roomId);
 
       let updatedList;
       if (exists) {
-        console.log(`🔄 Updating existing conversation: ${newConv.roomId}`);
-        // Update existing
         updatedList = state.conversations.map(c =>
-          c.roomId === newConv.roomId ? { ...c, ...newConv } : c
+          c.roomId === newConv.roomId
+            ? { ...c, ...newConv }
+            : c
         );
       } else {
-        console.log(`✨ Adding BRAND NEW conversation to list: ${newConv.roomId}`);
-        // Add brand new conversation to the top
         updatedList = [newConv, ...state.conversations];
       }
 
-      // Final step: Sort and return
-      const sortedList = updatedList.sort((a, b) =>
-        new Date(b.lastTimestamp) - new Date(a.lastTimestamp)
-      );
-
-      console.log('📊 Stats:', {
-        totalConversations: sortedList.length,
-        topConversationRoomId: sortedList[0]?.roomId,
-        lastMessage: sortedList[0]?.lastMessage
-      });
-
       return {
         ...state,
-        conversations: sortedList
+        conversations: updatedList.sort((a, b) =>
+          new Date(b.lastTimestamp || b.timestamp) - new Date(a.lastTimestamp || a.timestamp)
+        )
       };
     }
 

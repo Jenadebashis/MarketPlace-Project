@@ -43,14 +43,16 @@ const socketMiddleware = () => {
         });
 
         socket.on('receive_message', (msg) => {
-          console.log('the message coming here is: ', { msg });
+          console.log('the message coming here is: ', { msg, user });
           store.dispatch({ type: 'chat/addMessage', payload: msg });
           store.dispatch({
             type: 'inbox/updateLastMessage',
             payload: {
               roomId: msg.roomId,
               text: msg.text,
-              timestamp: msg.timestamp
+              timestamp: msg.timestamp,
+              senderId: msg.senderId,
+              currentUserId: user.id
             }
           });
         });
