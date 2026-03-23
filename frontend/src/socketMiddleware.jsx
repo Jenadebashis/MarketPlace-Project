@@ -55,6 +55,14 @@ const socketMiddleware = () => {
           });
         });
 
+        socket.on('user_presence', (data) => {
+          store.dispatch({ type: 'presence/updateStatus', payload: data });
+        });
+
+        socket.on('status_response', (data) => {
+          store.dispatch({ type: 'presence/updateStatus', payload: data });
+        });
+
         socket.on('connect', () => store.dispatch({ type: 'chat/setConnected', payload: true }));
         socket.on('disconnect', () => store.dispatch({ type: 'chat/setConnected', payload: false }));
         break;
@@ -76,6 +84,12 @@ const socketMiddleware = () => {
         if (socket) {
           // payload should now be { roomId, text }
           socket.emit('send_message', action.payload);
+        }
+        break;
+
+      case 'socket/check_status':
+        if (socket) {
+          socket.emit('check_online_status', action.payload.userId);
         }
         break;
 

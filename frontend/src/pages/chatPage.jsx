@@ -31,7 +31,7 @@ const ChatPage = () => {
     dispatch({ type: 'inbox/markAsRead', payload: chatObj.roomId });
 
     if (chatObj.otherPartyId && isConnected) {
-      socket.emit('check_online_status', chatObj.otherPartyId);
+      dispatch({ type: 'socket/check_status', payload: { userId: chatObj.otherPartyId } });
     }
 
     try {
@@ -45,29 +45,6 @@ const ChatPage = () => {
       console.error("Failed to load chat data:", err);
     }
   }, [selectedChat?.roomId, dispatch, isConnected]);
-
-  useEffect(() => {
-    if (!selectedChat?.otherPartyId || !isConnected) {
-      setIsOtherUserOnline(false);
-      return;
-    }
-
-    const targetId = selectedChat.otherPartyId.toString();
-
-    const handleStatusUpdate = (data) => {
-      if (data.userId.toString() === targetId) {
-        setIsOtherUserOnline(data.status === 'online');
-      }
-    };
-
-    socket.on('status_response', handleStatusUpdate);
-    socket.on('user_presence', handleStatusUpdate);
-
-    return () => {
-      socket.off('status_response', handleStatusUpdate);
-      socket.off('user_presence', handleStatusUpdate);
-    };
-  }, [selectedChat?.otherPartyId, isConnected]);
 
   useEffect(() => {
     const fetchInbox = async () => {

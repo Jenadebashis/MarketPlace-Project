@@ -1,6 +1,7 @@
 const initialState = {
   conversations: [], // List of { roomId, otherPartyName, lastMessage, timestamp, product }
   loading: false,
+  onlineUsers: {},
   error: null
 };
 
@@ -102,6 +103,16 @@ export default function inboxReducer(state = initialState, action) {
       return {
         ...state,
         conversations: sortedList
+      };
+    }
+
+    case 'presence/updateStatus': {
+      return {
+        ...state,
+        onlineUsers: {
+          ...state.onlineUsers,
+          [action.payload.userId]: action.payload.status
+        }
       };
     }
 
