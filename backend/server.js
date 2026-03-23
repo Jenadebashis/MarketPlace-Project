@@ -178,9 +178,19 @@ io.on('connection', (socket) => {
   socket.join(`user_${userId}`);
 
   socket.on('check_online_status', (targetUserId) => {
-    const isOnline = onlineUsers.has(targetUserId.toString());
-    console.log('the value present in onlineUsers are: ', {onlineUsers, targetUserId, isOnline});
-    socket.emit('status_response', { userId: targetUserId, status: isOnline ? 'online' : 'offline' });
+    const idToCheck = Number(targetUserId);
+    const isOnline = onlineUsers.has(idToCheck);
+
+    console.log('Online Check:', {
+      searchingFor: idToCheck,
+      type: typeof idToCheck,
+      isOnline
+    });
+
+    socket.emit('status_response', {
+      userId: targetUserId,
+      status: isOnline ? 'online' : 'offline'
+    });
   });
 
   socket.on('add_to_cart', (product) => {
