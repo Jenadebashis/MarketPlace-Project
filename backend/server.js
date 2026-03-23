@@ -179,7 +179,7 @@ io.on('connection', (socket) => {
 
   socket.on('check_online_status', (targetUserId) => {
     const isOnline = onlineUsers.has(targetUserId.toString());
-    console.log('the value present in onlineUsers are: ', {onlineUsers, targetUserId});
+    console.log('the value present in onlineUsers are: ', {onlineUsers, targetUserId, isOnline});
     socket.emit('status_response', { userId: targetUserId, status: isOnline ? 'online' : 'offline' });
   });
 
